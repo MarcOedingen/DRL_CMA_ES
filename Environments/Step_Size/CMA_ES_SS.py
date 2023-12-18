@@ -1,16 +1,5 @@
-import time
 import numpy as np
-from cocoex.function import BenchmarkFunction
 from Parameters.CMA_ES_Parameters import CMAESParameters
-
-def runCMAES(objective_fct, x_start, sigma):
-    es = CMAES(x_start, sigma)
-    while not es.stop():
-        X = es.ask()
-        fit = [objective_fct(x) for x in X]
-        es.tell(X, fit)
-    return es.x_mean, es
-
 
 class CMAES:
     def __init__(self, x_start, sigma):
@@ -18,11 +7,11 @@ class CMAES:
         self.params = CMAESParameters(N)
         self.max_f_evals = 1e3 * N ** 2
 
-        # initializing dynamic state variables
         self.x_mean = x_start
         self.sigma = sigma
         self.pc = np.zeros(N)
         self.ps = np.zeros(N)
+
         self.B = np.eye(N)
         self.D = np.ones(N)
         self.C = np.eye(N)
@@ -47,9 +36,11 @@ class CMAES:
         par = self.params
         x_old = self.x_mean
 
+        # Sort by fitness and compute weighted mean into xmean
         arx = arx[np.argsort(fit_vals)]
         self.fit_vals = np.sort(fit_vals)
 
+        # Update mean
         self.x_mean = np.sum(arx[0:par.mu] * par.weights[:par.mu, None], axis=0)
 
         # Update evolution paths
@@ -72,10 +63,12 @@ class CMAES:
             + par.cmu * ar_temp.T.dot(np.diag(par.weights)).dot(ar_temp)
         )
 
-        # Adapt step-size sigma
+        '''# Adapt step-size sigma
         self.sigma = self.sigma * np.exp(
             (par.cs / par.damps) * (np.linalg.norm(self.ps) / par.chiN - 1)
-        )
+        )'''
+
+        return self.ps
 
     def stop(self):
         res = {}
@@ -101,19 +94,3 @@ class CMAES:
             np.dot(self.B, np.diag(1.0 / np.sqrt(self.D))), self.B.T
         )
         self.updated_eval = self.count_eval
-
-
-if __name__ == "__main__":
-    dim = 10
-    results_CMA_ES = []
-    start = time.perf_counter()
-    for i in range(1, 25):
-        function = BenchmarkFunction("bbob", i, dim, 1)
-        x_min = runCMAES(function, np.zeros(dim), 0.5)[0]
-        print(
-            f"Difference between actual minimum and found minimum: {abs(function(x_min) - function.best_value())}"
-        )
-        results_CMA_ES.append(abs(function(x_min) - function.best_value()))
-    end = time.perf_counter() - start
-    print(f"Time: {end}")
-    print(f"Mean: {np.mean(results_CMA_ES)} +/- {np.std(results_CMA_ES)}")
