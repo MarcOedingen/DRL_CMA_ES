@@ -1,9 +1,10 @@
 import numpy as np
 
-class CMAESParameters(object):
+
+class CMAESParameters:
     def __init__(self, N):
         self.dimension = N
-        self.chiN = N**0.5 * (1 - 1.0 / (4 * N) + 1.0 / (21 * N**2))
+        self.chiN = N ** 0.5 * (1 - 1.0 / (4 * N) + 1.0 / (21 * N ** 2))
 
         # Strategy parameter setting: Selection
         self.lam = 4 + int(3 * np.log(N))
@@ -19,4 +20,4 @@ class CMAESParameters(object):
         self.c1 = 2 / ((N + 1.3) ** 2 + self.mueff)
         self.cmu = min(1 - self.c1, 2 * (self.mueff - 2 + 1 / self.mueff) / (N + 2) ** 2)
         self.damps = 2 * self.mueff / self.lam + 0.3 + self.cs
-        self.lazy_gap_evals = 0.5 * N * self.lam * (self.c1 + self.cmu) ** -1 / N**2
+        self.lazy_gap_evals = 0.5 * N * self.lam * (self.c1 + self.cmu) ** -1 / N ** 2
