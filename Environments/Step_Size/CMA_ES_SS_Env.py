@@ -6,10 +6,11 @@ from collections import deque
 from Environments.Step_Size.CMA_ES_SS import CMAES
 
 class CMA_ES_SS(gymnasium.Env):
-    def __init__(self, objetive_funcs, sigma):
+    def __init__(self, objetive_funcs, x_start, sigma):
         super(CMA_ES_SS, self).__init__()
         self.cma_es = None
         self.objetive_funcs = objetive_funcs
+        self.x_start = x_start
         self.sigma = sigma
         self.curr_index = 0
 
@@ -19,12 +20,12 @@ class CMA_ES_SS(gymnasium.Env):
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
 
-        self.action_space = gymnasium.spaces.Box(low=1e-10, high=10, shape=(1,), dtype=np.float64)
+        self.action_space = gymnasium.spaces.Box(low=1e-10, high=1, shape=(1,), dtype=np.float64)
         self.observation_space = gymnasium.spaces.Box(low=-np.inf, high=np.inf, shape=(2 + 2 * self.h,), dtype=np.float64)
 
         self.iteration = 0
         self._stop = False
-        self._f_limit = np.power(10, 36)
+        self._f_limit = np.power(10, 35)
 
     def step(self, action):
         self.curr_sigma = action[0]
@@ -75,8 +76,10 @@ class CMA_ES_SS(gymnasium.Env):
         self.curr_ps = 0
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
-        #self.cma_es = CMAES(np.random.uniform(low=-5, high=5, size=self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension), self.sigma)
-        self.cma_es = CMAES(np.zeros(self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension), self.sigma)
+        if self.x_start == 'random':
+            self.cma_es = CMAES(np.random.uniform(low=-5, high=5, size=self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension), self.sigma)
+        else:
+            self.cma_es = CMAES(np.zeros(self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension), self.sigma)
         self.iteration = 0
         return np.concatenate(
             [np.array([self.curr_sigma]), np.array([self.curr_ps]), list(self.hist_fit_vals),

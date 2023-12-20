@@ -102,14 +102,12 @@ class CMAES:
         )
         self.updated_eval = self.count_eval
 
-
-if __name__ == "__main__":
-    dim = 10
+def run(dimension, x_start, sigma, instance):
     results_CMA_ES = []
     start = time.perf_counter()
     for i in range(1, 25):
-        function = BenchmarkFunction("bbob", i, dim, 1)
-        x_min = runCMAES(function, np.zeros(dim), 0.5)[0]
+        function = BenchmarkFunction("bbob", i, dimension, instance)
+        x_min = runCMAES(objective_fct=function, x_start=x_start, sigma=sigma)[0]
         print(
             f"Difference between actual minimum and found minimum: {abs(function(x_min) - function.best_value())}"
         )
