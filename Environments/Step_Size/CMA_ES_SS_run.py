@@ -18,7 +18,7 @@ class StopOnAllFunctionsEvaluated(BaseCallback):
 
 def run(dimension, x_start, sigma, instance):
     train_ids, test_ids = train_test_split(np.arange(1, 25), test_size=0.2, random_state=42)
-    train_funcs = np.repeat([BenchmarkFunction("bbob", train_id, dimension, instance) for train_id in train_ids], 20)
+    train_funcs = np.repeat([BenchmarkFunction("bbob", train_id, dimension, instance) for train_id in train_ids], 100)
     np.random.shuffle(train_funcs)
     test_funcs = [BenchmarkFunction("bbob", test_id, dimension, instance) for test_id in test_ids]
     test_funcs = np.repeat(test_funcs, 10)

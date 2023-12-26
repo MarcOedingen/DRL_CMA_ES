@@ -1,7 +1,5 @@
-import torch
 import gymnasium
 import numpy as np
-import tensorflow as tf
 from collections import deque
 from Environments.Step_Size.CMA_ES_SS import CMAES
 
@@ -25,7 +23,7 @@ class CMA_ES_SS(gymnasium.Env):
 
         self.iteration = 0
         self._stop = False
-        self._f_limit = np.power(10, 35)
+        self._f_limit = np.power(10, 28)
 
     def step(self, action):
         self.curr_sigma = action[0]
@@ -49,7 +47,8 @@ class CMA_ES_SS(gymnasium.Env):
         # Update history
         # If self.iteration is greater than 0, then the difference between the current reward and the previous reward is added to the history
         if self.iteration > 0:
-            self.hist_fit_vals.append(np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])) / reward)
+            difference = np.clip(np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])), -self._f_limit, self._f_limit)
+            self.hist_fit_vals.append(difference / reward)
             self.hist_sigmas.append(self.curr_sigma)
 
         new_state = np.concatenate([np.array([self.curr_sigma]), np.array([np.linalg.norm(new_ps) / self.cma_es.params.chiN - 1]), np.array(self.hist_fit_vals), np.array(self.hist_sigmas)])
