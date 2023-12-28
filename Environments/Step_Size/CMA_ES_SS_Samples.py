@@ -1,6 +1,7 @@
+import os
 import numpy as np
+from tqdm import tqdm
 from collections import deque
-from cocoex.function import BenchmarkFunction
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
@@ -124,20 +125,15 @@ class CMAES_SS_Samples:
         self.updated_eval = self.count_eval
 
 
-def run(dimensions, x_start, sigma, instance):
+def collect_expert_samples(dimension, x_start, sigma, bbob_functions):
+    if os.path.isfile(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz"):
+        data = np.load(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz")
+        return data
     observations, actions, dones = [], [], []
-    for i in range(1, 25):
-        function = BenchmarkFunction("bbob", i, dimensions, instance)
-        obs, acts, dns = runCMAES(objective_fct=function, x_start=x_start, sigma=sigma)
+    for function in tqdm(bbob_functions):
+        obs, acts, dns = runCMAES(objective_fct=function, x_start=np.zeros(dimension), sigma=0.5)
         observations.extend(obs)
         actions.extend(acts)
         dones.extend(dns)
-    # Cache the observations and actions as npz file for later use, i.e. imitation learning
-    np.savez(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimensions}D.npz", observations=observations, actions=actions, dones=dones)
-
-    test = np.load(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimensions}D.npz")
-    print(test["observations"].shape)
-    print(test["actions"].shape)
-
-
-run(2, np.zeros(2), 0.5, 1)
+    np.savez(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz", observations=observations, actions=actions, dones=dones)
+    return np.load(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz")
