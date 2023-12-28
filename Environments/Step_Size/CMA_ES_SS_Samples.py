@@ -18,12 +18,26 @@ def runCMAES(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
         ps, new_sigma = es.tell(X, fit)
         reward = np.clip(-np.mean(fit), -f_limit, f_limit)
         if iteration > 0:
-            difference = np.clip(np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])), -f_limit, f_limit) / reward
+            difference = (
+                np.clip(
+                    np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])),
+                    -f_limit,
+                    f_limit,
+                )
+                / reward
+            )
             hist_fit_vals.append(difference)
             hist_sigmas.append(cur_sigma)
-        observations.append(np.concatenate(
-            [np.array([new_sigma]), np.array([np.linalg.norm(ps) / es.params.chiN - 1]), np.array(hist_fit_vals),
-             np.array(hist_sigmas)]))
+        observations.append(
+            np.concatenate(
+                [
+                    np.array([new_sigma]),
+                    np.array([np.linalg.norm(ps) / es.params.chiN - 1]),
+                    np.array(hist_fit_vals),
+                    np.array(hist_sigmas),
+                ]
+            )
+        )
         actions.append(new_sigma)
         dones.append(False)
         cur_sigma = new_sigma
@@ -36,7 +50,7 @@ class CMAES_SS_Samples:
     def __init__(self, x_start, sigma):
         N = len(x_start)
         self.params = CMAESParameters(N)
-        self.max_f_evals = 1e3 * N ** 2
+        self.max_f_evals = 1e3 * N**2
 
         # initializing dynamic state variables
         self.x_mean = x_start
@@ -70,7 +84,7 @@ class CMAES_SS_Samples:
         arx = arx[np.argsort(fit_vals)]
         self.fit_vals = np.sort(fit_vals)
 
-        self.x_mean = np.sum(arx[0:par.mu] * par.weights[:par.mu, None], axis=0)
+        self.x_mean = np.sum(arx[0 : par.mu] * par.weights[: par.mu, None], axis=0)
 
         # Update evolution paths
         self.ps = (1 - par.cs) * self.ps + np.sqrt(
@@ -84,12 +98,15 @@ class CMAES_SS_Samples:
         ) * (self.x_mean - x_old) / self.sigma
 
         # Adapt covariance matrix C
-        ar_temp = (arx[0: par.mu] - x_old) / self.sigma
+        ar_temp = (arx[0 : par.mu] - x_old) / self.sigma
         self.C = (
-                (1 - par.c1 - par.cmu) * self.C
-                + par.c1
-                * (np.outer(self.pc, self.pc) + (1 - h_sig) * par.cc * (2 - par.cc) * self.C)
-                + par.cmu * ar_temp.T.dot(np.diag(par.weights)).dot(ar_temp)
+            (1 - par.c1 - par.cmu) * self.C
+            + par.c1
+            * (
+                np.outer(self.pc, self.pc)
+                + (1 - h_sig) * par.cc * (2 - par.cc) * self.C
+            )
+            + par.cmu * ar_temp.T.dot(np.diag(par.weights)).dot(ar_temp)
         )
 
         # Adapt step-size sigma
@@ -131,9 +148,14 @@ def collect_expert_samples(dimension, x_start, sigma, bbob_functions):
         return data
     observations, actions, dones = [], [], []
     for function in tqdm(bbob_functions):
-        obs, acts, dns = runCMAES(objective_fct=function, x_start=np.zeros(dimension), sigma=0.5)
+        obs, acts, dns = runCMAES(objective_fct=function, x_start=x_start, sigma=sigma)
         observations.extend(obs)
         actions.extend(acts)
         dones.extend(dns)
-    np.savez(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz", observations=observations, actions=actions, dones=dones)
+    np.savez(
+        f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz",
+        observations=observations,
+        actions=actions,
+        dones=dones,
+    )
     return np.load(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz")

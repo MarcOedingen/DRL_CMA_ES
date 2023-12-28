@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from stable_baselines3.common.callbacks import BaseCallback
 
+
 class StopOnAllFunctionsEvaluated(BaseCallback):
     def __init__(self, verbose=0):
         super(StopOnAllFunctionsEvaluated, self).__init__(verbose)
@@ -17,10 +18,21 @@ class StopOnAllFunctionsEvaluated(BaseCallback):
 
 
 def run(dimension, x_start, sigma, instance):
-    train_ids, test_ids = train_test_split(np.arange(1, 25), test_size=0.2, random_state=42)
-    train_funcs = np.repeat([BenchmarkFunction("bbob", int(train_id), dimension, instance) for train_id in train_ids], 100)
+    train_ids, test_ids = train_test_split(
+        np.arange(1, 25), test_size=0.2, random_state=42
+    )
+    train_funcs = np.repeat(
+        [
+            BenchmarkFunction("bbob", int(train_id), dimension, instance)
+            for train_id in train_ids
+        ],
+        100,
+    )
     np.random.shuffle(train_funcs)
-    test_funcs = [BenchmarkFunction("bbob", int(test_id), dimension, instance) for test_id in test_ids]
+    test_funcs = [
+        BenchmarkFunction("bbob", int(test_id), dimension, instance)
+        for test_id in test_ids
+    ]
     test_funcs = np.repeat(test_funcs, 10)
 
     train_env = CMA_ES_SS(objetive_funcs=train_funcs, x_start=x_start, sigma=sigma)
@@ -41,4 +53,11 @@ def run(dimension, x_start, sigma, instance):
         rewards[index] = -reward
 
     for i in range(len(test_funcs)):
-        print("Function: ", test_funcs[i].function, " Reward: ", rewards[i], "Optimum: ", test_funcs[i].best_value())
+        print(
+            "Function: ",
+            test_funcs[i].function,
+            " Reward: ",
+            rewards[i],
+            "Optimum: ",
+            test_funcs[i].best_value(),
+        )

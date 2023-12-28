@@ -1,11 +1,12 @@
 import numpy as np
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
+
 class CMAES:
     def __init__(self, x_start, sigma):
         N = len(x_start)
         self.params = CMAESParameters(N)
-        self.max_f_evals = 1e3 * N ** 2
+        self.max_f_evals = 1e3 * N**2
 
         self.x_mean = x_start
         self.sigma = sigma
@@ -41,7 +42,7 @@ class CMAES:
         self.fit_vals = np.sort(fit_vals)
 
         # Update mean
-        self.x_mean = np.sum(arx[0:par.mu] * par.weights[:par.mu, None], axis=0)
+        self.x_mean = np.sum(arx[0 : par.mu] * par.weights[: par.mu, None], axis=0)
 
         # Update evolution paths
         self.ps = (1 - par.cs) * self.ps + np.sqrt(
@@ -59,14 +60,17 @@ class CMAES:
         self.C = (
             (1 - par.c1 - par.cmu) * self.C
             + par.c1
-            * (np.outer(self.pc, self.pc) + (1 - h_sig) * par.cc * (2 - par.cc) * self.C)
+            * (
+                np.outer(self.pc, self.pc)
+                + (1 - h_sig) * par.cc * (2 - par.cc) * self.C
+            )
             + par.cmu * ar_temp.T.dot(np.diag(par.weights)).dot(ar_temp)
         )
 
-        '''# Adapt step-size sigma
+        """# Adapt step-size sigma
         self.sigma = self.sigma * np.exp(
             (par.cs / par.damps) * (np.linalg.norm(self.ps) / par.chiN - 1)
-        )'''
+        )"""
 
         return self.ps
 

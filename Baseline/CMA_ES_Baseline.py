@@ -3,6 +3,7 @@ import numpy as np
 from cocoex.function import BenchmarkFunction
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
+
 def runCMAES(objective_fct, x_start, sigma):
     es = CMAES(x_start, sigma)
     while not es.stop():
@@ -16,7 +17,7 @@ class CMAES:
     def __init__(self, x_start, sigma):
         N = len(x_start)
         self.params = CMAESParameters(N)
-        self.max_f_evals = 1e3 * N ** 2
+        self.max_f_evals = 1e3 * N**2
 
         # initializing dynamic state variables
         self.x_mean = x_start
@@ -50,7 +51,7 @@ class CMAES:
         arx = arx[np.argsort(fit_vals)]
         self.fit_vals = np.sort(fit_vals)
 
-        self.x_mean = np.sum(arx[0:par.mu] * par.weights[:par.mu, None], axis=0)
+        self.x_mean = np.sum(arx[0 : par.mu] * par.weights[: par.mu, None], axis=0)
 
         # Update evolution paths
         self.ps = (1 - par.cs) * self.ps + np.sqrt(
@@ -68,7 +69,10 @@ class CMAES:
         self.C = (
             (1 - par.c1 - par.cmu) * self.C
             + par.c1
-            * (np.outer(self.pc, self.pc) + (1 - h_sig) * par.cc * (2 - par.cc) * self.C)
+            * (
+                np.outer(self.pc, self.pc)
+                + (1 - h_sig) * par.cc * (2 - par.cc) * self.C
+            )
             + par.cmu * ar_temp.T.dot(np.diag(par.weights)).dot(ar_temp)
         )
 
@@ -101,6 +105,7 @@ class CMAES:
             np.dot(self.B, np.diag(1.0 / np.sqrt(self.D))), self.B.T
         )
         self.updated_eval = self.count_eval
+
 
 def run(dimension, x_start, sigma, instance):
     results_CMA_ES = []

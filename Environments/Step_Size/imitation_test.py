@@ -8,7 +8,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from imitation.algorithms import bc
 from imitation.data.types import Transitions
 
-env = gymnasium.make('CartPole-v1')
+env = gymnasium.make("CartPole-v1")
 if not os.path.exists("ppo_cartpole.zip"):
     model = PPO(MlpPolicy, env, verbose=1)
     model.learn(total_timesteps=50_000)
@@ -45,14 +45,14 @@ transitions = Transitions(
     next_obs=np.array(next_obs_list),
     acts=np.array(action_list),
     dones=np.array(done_list),
-    infos=np.array(info_list)
+    infos=np.array(info_list),
 )
 
 bc_trainer = bc.BC(
     observation_space=env.observation_space,
     action_space=env.action_space,
     demonstrations=transitions,
-    rng = np.random.default_rng(42)
+    rng=np.random.default_rng(42),
 )
 
 mean_reward, std_reward = evaluate_policy(bc_trainer.policy, env, n_eval_episodes=5)
