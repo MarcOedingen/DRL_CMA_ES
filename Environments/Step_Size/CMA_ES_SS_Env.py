@@ -37,7 +37,7 @@ class CMA_ES_SS(gymnasium.Env):
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
         fit = [self.objetive_funcs[self.curr_index](x) for x in X]
-        new_ps = self.cma_es.tell(X, fit)
+        new_ps, _ = self.cma_es.tell(X, fit)
 
         # Calculate reward (Turn minimization into maximization)
         reward = -np.min(fit)
@@ -50,7 +50,6 @@ class CMA_ES_SS(gymnasium.Env):
         truncated = bool(self.cma_es.stop())
 
         # Update history
-        # If self.iteration is greater than 0, then the difference between the current reward and the previous reward is added to the history
         if self.iteration > 0:
             difference = np.clip(
                 np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])),
@@ -93,26 +92,22 @@ class CMA_ES_SS(gymnasium.Env):
         self.curr_ps = 0
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
-        if self.x_start == "random":
-            self.cma_es = CMAES(
-                np.random.uniform(
-                    low=-5,
-                    high=5,
-                    size=self.objetive_funcs[
-                        self.curr_index % len(self.objetive_funcs)
-                    ].dimension,
-                ),
-                self.sigma,
+        x_start = (
+            np.zeros(
+                self.objetive_funcs[
+                    self.curr_index % len(self.objetive_funcs)
+                ].dimension
             )
-        else:
-            self.cma_es = CMAES(
-                np.zeros(
-                    self.objetive_funcs[
-                        self.curr_index % len(self.objetive_funcs)
-                    ].dimension
-                ),
-                self.sigma,
+            if self.x_start == "zero"
+            else np.random.uniform(
+                low=-5,
+                high=5,
+                size=self.objetive_funcs[
+                    self.curr_index % len(self.objetive_funcs)
+                ].dimension,
             )
+        )
+        self.cma_es = CMAES(x_start, self.sigma)
         self.iteration = 0
         return (
             np.concatenate(

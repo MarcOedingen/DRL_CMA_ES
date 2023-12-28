@@ -1,5 +1,68 @@
+import os
 import numpy as np
+from tqdm import tqdm
+from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
+
+
+def runCMAES(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
+    es = CMAES(x_start, sigma)
+    observations, actions, dones = [np.hstack((np.array(sigma), np.zeros(81)))], [], []
+    hist_fit_vals = deque(np.zeros(h), maxlen=h)
+    hist_sigmas = deque(np.zeros(h), maxlen=h)
+    iteration = 0
+    cur_sigma = sigma
+    while not es.stop():
+        X = es.ask()
+        fit = [objective_fct(x) for x in X]
+        ps, new_sigma = es.tell(X, fit)
+        reward = np.clip(-np.mean(fit), -f_limit, f_limit)
+        if iteration > 0:
+            difference = (
+                np.clip(
+                    np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])),
+                    -f_limit,
+                    f_limit,
+                )
+                / reward
+            )
+            hist_fit_vals.append(difference)
+            hist_sigmas.append(cur_sigma)
+        observations.append(
+            np.concatenate(
+                [
+                    np.array([new_sigma]),
+                    np.array([np.linalg.norm(ps) / es.params.chiN - 1]),
+                    np.array(hist_fit_vals),
+                    np.array(hist_sigmas),
+                ]
+            )
+        )
+        actions.append(new_sigma)
+        dones.append(False)
+        cur_sigma = new_sigma
+        iteration += 1
+    dones[-1] = True
+    return np.array(observations), np.array(actions), np.array(dones)
+
+
+def collect_expert_samples(dimension, x_start, sigma, bbob_functions):
+    if os.path.isfile(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz"):
+        data = np.load(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz")
+        return data
+    observations, actions, dones = [], [], []
+    for function in tqdm(bbob_functions):
+        obs, acts, dns = runCMAES(objective_fct=function, x_start=x_start, sigma=sigma)
+        observations.extend(obs)
+        actions.extend(acts)
+        dones.extend(dns)
+    np.savez(
+        f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz",
+        observations=observations,
+        actions=actions,
+        dones=dones,
+    )
+    return np.load(f"Environments/Step_Size/CMA_ES_SS_Samples_{dimension}D.npz")
 
 
 class CMAES:
@@ -67,12 +130,11 @@ class CMAES:
             + par.cmu * ar_temp.T.dot(np.diag(par.weights)).dot(ar_temp)
         )
 
-        """# Adapt step-size sigma
-        self.sigma = self.sigma * np.exp(
+        expert_sigma = self.sigma * np.exp(
             (par.cs / par.damps) * (np.linalg.norm(self.ps) / par.chiN - 1)
-        )"""
+        )
 
-        return self.ps
+        return self.ps, expert_sigma
 
     def stop(self):
         res = {}

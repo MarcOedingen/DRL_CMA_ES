@@ -1,4 +1,3 @@
-import time
 import numpy as np
 from cocoex.function import BenchmarkFunction
 from Parameters.CMA_ES_Parameters import CMAESParameters
@@ -108,8 +107,8 @@ class CMAES:
 
 
 def run(dimension, x_start, sigma, instance):
+    print("---------------Starting CMA-ES baseline---------------")
     results_CMA_ES = []
-    start = time.perf_counter()
     for i in range(1, 25):
         function = BenchmarkFunction("bbob", i, dimension, instance)
         x_start = (
@@ -122,6 +121,4 @@ def run(dimension, x_start, sigma, instance):
             f"Difference between actual minimum and found minimum: {abs(function(x_min) - function.best_value())}"
         )
         results_CMA_ES.append(abs(function(x_min) - function.best_value()))
-    end = time.perf_counter() - start
-    print(f"Time: {end}")
     print(f"Mean: {np.mean(results_CMA_ES)} +/- {np.std(results_CMA_ES)}")
