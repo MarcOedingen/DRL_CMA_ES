@@ -112,6 +112,11 @@ def run(dimension, x_start, sigma, instance):
     start = time.perf_counter()
     for i in range(1, 25):
         function = BenchmarkFunction("bbob", i, dimension, instance)
+        x_start = (
+            np.zeros(dimension)
+            if x_start == "zero"
+            else np.random.uniform(-5, 5, dimension)
+        )
         x_min = runCMAES(objective_fct=function, x_start=x_start, sigma=sigma)[0]
         print(
             f"Difference between actual minimum and found minimum: {abs(function(x_min) - function.best_value())}"

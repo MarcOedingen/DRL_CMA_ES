@@ -30,12 +30,7 @@ def main():
     if args.algorithm == "baseline":
         from Baseline.CMA_ES_Baseline import run
 
-        x_start = (
-            np.zeros(args.dimension)
-            if args.xstart == "zero"
-            else np.random.uniform(low=-5, high=5, size=args.dimension)
-        )
-        run(args.dimension, x_start, args.sigma, args.instance)
+        run(args.dimension, args.xstart, args.sigma, args.instance)
     elif args.algorithm == "stepsize":
         from Environments.Step_Size.CMA_ES_SS_run import run
 
