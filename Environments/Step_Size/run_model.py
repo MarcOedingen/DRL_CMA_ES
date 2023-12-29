@@ -1,5 +1,5 @@
+import pickle
 import numpy as np
-from Environments import utils
 from stable_baselines3 import PPO
 from cocoex.function import BenchmarkFunction
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
@@ -10,11 +10,16 @@ def main():
     func_ids = np.arange(1, 25)
     func_instances = np.random.randint(1, 101, size=len(func_ids))
     functions = [
-        BenchmarkFunction("bbob", func_id, 2, func_instance)
+        BenchmarkFunction("bbob", func_id, 20, func_instance)
         for func_id, func_instance in zip(func_ids, func_instances)
     ]
+    x_start = "random"
+    sigma = 0.5
 
-    ppo_model = PPO.load("Environments/Step_Size/ppo_model_ss_imit_10D")
+    ppo_model = PPO("MlpPolicy", CMA_ES_SS(objetive_funcs=functions, x_start=x_start, sigma=sigma), verbose=0)
+    with open("Environments/Step_Size/ppo_policy_ss_imit_2D.pkl", "rb") as f:
+        ppo_model.policy = pickle.load(f)
+
     rewards = np.zeros(len(functions))
     for index, test_func in enumerate(functions):
         eval_env = CMA_ES_SS(objetive_funcs=[test_func], x_start="zero", sigma=0.5)
