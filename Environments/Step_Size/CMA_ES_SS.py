@@ -47,12 +47,20 @@ def runCMAES(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
 
 
 def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
-    if os.path.isfile(f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"):
-        data = np.load(f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz")
+    if os.path.isfile(
+        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"
+    ):
+        data = np.load(
+            f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"
+        )
         return data
     observations, actions, dones = [], [], []
     for function in tqdm(bbob_functions):
-        _x_start = np.zeros(function.dimension) if x_start == 0 else np.random.uniform(-5, 5, function.dimension)
+        _x_start = (
+            np.zeros(function.dimension)
+            if x_start == 0
+            else np.random.uniform(-5, 5, function.dimension)
+        )
         obs, acts, dns = runCMAES(objective_fct=function, x_start=_x_start, sigma=sigma)
         observations.extend(obs)
         actions.extend(acts)
@@ -63,7 +71,9 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
         actions=actions,
         dones=dones,
     )
-    return np.load(f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz")
+    return np.load(
+        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"
+    )
 
 
 class CMAES:

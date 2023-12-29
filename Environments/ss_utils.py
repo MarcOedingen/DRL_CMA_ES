@@ -30,7 +30,9 @@ def split_train_test_functions(
     )
     train_funcs = np.repeat(
         [
-            BenchmarkFunction("bbob", int(train_id), dimensions[index], instances[index])
+            BenchmarkFunction(
+                "bbob", int(train_id), dimensions[index], instances[index]
+            )
             for index, train_id in enumerate(train_ids)
         ],
         repeats=train_repeats,
@@ -57,4 +59,6 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model):
             steps += 1
         rewards[index] = -reward
 
-    return np.abs(rewards - np.array([test_func.best_value() for test_func in test_funcs]))
+    return np.abs(
+        rewards - np.array([test_func.best_value() for test_func in test_funcs])
+    )
