@@ -65,12 +65,6 @@ def run(dimension, x_start, sigma, instance):
         dimensions=func_dimensions, instances=func_instances
     )
 
-    """x_start = (
-        np.zeros(dimension)
-        if x_start == 0
-        else np.random.uniform(low=-5, high=5, size=dimension)
-    )"""
-
     train_env = CMA_ES_SS(objetive_funcs=train_funcs, x_start=x_start, sigma=sigma)
 
     print("Collecting expert samples...")
