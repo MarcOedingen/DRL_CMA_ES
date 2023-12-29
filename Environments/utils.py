@@ -2,7 +2,6 @@ import numpy as np
 from cocoex.function import BenchmarkFunction
 from sklearn.model_selection import train_test_split
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
-
 from stable_baselines3.common.callbacks import BaseCallback
 
 

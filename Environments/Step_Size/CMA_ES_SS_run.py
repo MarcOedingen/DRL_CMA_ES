@@ -14,6 +14,7 @@ def run(dimension, x_start, sigma, instance):
     ppo_model.learn(
         total_timesteps=int(1e6), callback=utils.StopOnAllFunctionsEvaluated()
     )
+    ppo_model.save(f"Environments/Step_Size/ppo_model_ss_{dimension}D")
 
     print("Evaluating the agent on the test functions...")
     utils.evaluate_agent(test_funcs, x_start, sigma, ppo_model)
