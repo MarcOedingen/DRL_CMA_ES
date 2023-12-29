@@ -98,7 +98,7 @@ class CMA_ES_SS(gymnasium.Env):
                     self.curr_index % len(self.objetive_funcs)
                 ].dimension
             )
-            if self.x_start == "zero"
+            if self.x_start == 0
             else np.random.uniform(
                 low=-5,
                 high=5,

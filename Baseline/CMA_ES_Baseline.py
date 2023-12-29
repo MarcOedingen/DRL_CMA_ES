@@ -1,4 +1,6 @@
+import g_utils
 import numpy as np
+from tqdm import tqdm
 from cocoex.function import BenchmarkFunction
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
@@ -107,18 +109,20 @@ class CMAES:
 
 
 def run(dimension, x_start, sigma, instance):
-    print("---------------Starting CMA-ES baseline---------------")
+    print("---------------Running CMA-ES baseline---------------")
     results_CMA_ES = []
-    for i in range(1, 25):
-        function = BenchmarkFunction("bbob", i, dimension, instance)
-        x_start = (
-            np.zeros(dimension)
-            if x_start == "zero"
-            else np.random.uniform(-5, 5, dimension)
+    func_dimensions = np.repeat(dimension, 24) if dimension > 1 else np.random.randint(2, 40, 24)
+    func_instances = np.repeat(instance, 24) if instance > 0 else np.random.randint(1, int(1e3) + 1, 24)
+
+    for i in tqdm(range(1, 25)):
+        function = BenchmarkFunction("bbob", i, func_dimensions[i - 1], func_instances[i - 1])
+        _x_start = (
+            np.zeros(func_dimensions[i - 1])
+            if x_start == 0
+            else np.random.uniform(-5, 5, func_dimensions[i - 1])
         )
-        x_min = runCMAES(objective_fct=function, x_start=x_start, sigma=sigma)[0]
-        print(
-            f"Difference between actual minimum and found minimum: {abs(function(x_min) - function.best_value())}"
-        )
+        x_min = runCMAES(objective_fct=function, x_start=_x_start, sigma=sigma)[0]
         results_CMA_ES.append(abs(function(x_min) - function.best_value()))
-    print(f"Mean: {np.mean(results_CMA_ES)} +/- {np.std(results_CMA_ES)}")
+
+    g_utils.print_pretty_table(func_dimensions=func_dimensions, func_instances=func_instances, results=results_CMA_ES)
+    print(f"Mean Difference: {np.mean(results_CMA_ES)} +/- {np.std(results_CMA_ES)}")

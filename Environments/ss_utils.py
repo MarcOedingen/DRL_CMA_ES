@@ -17,8 +17,8 @@ class StopOnAllFunctionsEvaluated(BaseCallback):
 
 
 def split_train_test_functions(
-    dimension,
-    instance,
+    dimensions,
+    instances,
     n_functions=24,
     test_size=0.25,
     train_repeats=10,
@@ -30,15 +30,15 @@ def split_train_test_functions(
     )
     train_funcs = np.repeat(
         [
-            BenchmarkFunction("bbob", int(train_id), dimension, instance)
-            for train_id in train_ids
+            BenchmarkFunction("bbob", int(train_id), dimensions[index], instances[index])
+            for index, train_id in enumerate(train_ids)
         ],
         repeats=train_repeats,
     )
     np.random.shuffle(train_funcs)
     test_funcs = [
-        BenchmarkFunction("bbob", int(test_id), dimension, instance)
-        for test_id in test_ids
+        BenchmarkFunction("bbob", int(test_id), dimensions[index], instances[index])
+        for index, test_id in enumerate(test_ids)
     ]
     test_funcs = np.repeat(test_funcs, repeats=test_repeats)
     return train_funcs, test_funcs
@@ -57,18 +57,4 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model):
             steps += 1
         rewards[index] = -reward
 
-    results = np.zeros((len(test_funcs)))
-    for i in range(len(test_funcs)):
-        print(
-            "Function: ",
-            test_funcs[i].function,
-            " Reward: ",
-            rewards[i],
-            "Optimum: ",
-            test_funcs[i].best_value(),
-            "Difference: ",
-            abs(test_funcs[i].best_value() - rewards[i]),
-        )
-        results[i] = abs(test_funcs[i].best_value() - rewards[i])
-
-    print(f"Mean difference: {np.mean(results)} +/- {np.std(results)}")
+    return np.abs(rewards - np.array([test_func.best_value() for test_func in test_funcs]))
