@@ -7,8 +7,8 @@ def main():
         "--algorithm",
         type=str,
         help="The dataset to use",
-        choices=["baseline", "stepsize", "stepsize_imit"],
-        default="stepsize_imit",
+        choices=["baseline", "optimized", "stepsize", "stepsize_imit"],
+        default="optimized",
     )
     parser.add_argument(
         "--dimension", type=int, help="The dimension of the problem", default=2
@@ -28,6 +28,11 @@ def main():
     args = parser.parse_args()
     if args.algorithm == "baseline":
         from Baseline.CMA_ES_Baseline import run
+
+        run(args.dimension, args.xstart, args.sigma, args.instance)
+
+    elif args.algorithm == "optimized":
+        from Optimized.CMA_ES_Optimized import run
 
         run(args.dimension, args.xstart, args.sigma, args.instance)
     elif args.algorithm == "stepsize":
