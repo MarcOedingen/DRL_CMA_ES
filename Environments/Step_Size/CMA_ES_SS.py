@@ -6,7 +6,7 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
 def runCMAES(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
-    es = CMAES(x_start, sigma)
+    es = CMAES_SS(x_start, sigma)
     observations, actions, dones = [np.hstack((np.array(sigma), np.zeros(81)))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
     hist_sigmas = deque(np.zeros(h), maxlen=h)
@@ -76,7 +76,7 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
     )
 
 
-class CMAES:
+class CMAES_SS:
     def __init__(self, x_start, sigma):
         N = len(x_start)
         self.params = CMAESParameters(N)

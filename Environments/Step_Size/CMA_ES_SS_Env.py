@@ -1,7 +1,7 @@
 import gymnasium
 import numpy as np
 from collections import deque
-from Environments.Step_Size.CMA_ES_SS import CMAES
+from Environments.Step_Size.CMA_ES_SS import CMAES_SS
 
 
 class CMA_ES_SS(gymnasium.Env):
@@ -107,7 +107,7 @@ class CMA_ES_SS(gymnasium.Env):
                 ].dimension,
             )
         )
-        self.cma_es = CMAES(x_start, self.sigma)
+        self.cma_es = CMAES_SS(x_start, self.sigma)
         self.iteration = 0
         return (
             np.concatenate(
