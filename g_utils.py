@@ -7,7 +7,7 @@ def print_pretty_table(func_dimensions, func_instances, results):
         "Function",
         "Dimensions",
         "Instance",
-        "Difference (x_best - x_opt)",
+        "Difference |x_best - x_opt|",
     ]
     for i in range(24):
         table.add_row(
