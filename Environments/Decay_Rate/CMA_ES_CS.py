@@ -1,85 +1,8 @@
-import os
 import numpy as np
-from tqdm import tqdm
-from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
-def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
-    es = CMAES_SS(x_start, sigma)
-    observations, actions, dones = [np.hstack((np.array(sigma), np.zeros(81)))], [], []
-    hist_fit_vals = deque(np.zeros(h), maxlen=h)
-    hist_sigmas = deque(np.zeros(h), maxlen=h)
-    iteration = 0
-    cur_sigma = sigma
-    while not es.stop():
-        X = es.ask()
-        fit = [objective_fct(x) for x in X]
-        ps, new_sigma = es.tell(X, fit)
-        es.sigma = new_sigma
-        reward = np.clip(-np.mean(fit), -f_limit, f_limit)
-        if iteration > 0:
-            difference = (
-                np.clip(
-                    np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])),
-                    -f_limit,
-                    f_limit,
-                )
-                / reward
-            )
-            hist_fit_vals.append(difference)
-            hist_sigmas.append(cur_sigma)
-        observations.append(
-            np.concatenate(
-                [
-                    np.array([new_sigma]),
-                    np.array([np.linalg.norm(ps) / es.params.chiN - 1]),
-                    np.array(hist_fit_vals),
-                    np.array(hist_sigmas),
-                ]
-            )
-        )
-        actions.append(new_sigma)
-        dones.append(False)
-        cur_sigma = new_sigma
-        iteration += 1
-    dones[-1] = True
-    return np.array(observations), np.array(actions), np.array(dones)
-
-
-def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
-    if os.path.isfile(
-        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"
-    ):
-        data = np.load(
-            f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"
-        )
-        return data
-    observations, actions, dones = [], [], []
-    for function in tqdm(bbob_functions):
-        _x_start = (
-            np.zeros(function.dimension)
-            if x_start == 0
-            else np.random.uniform(-5, 5, function.dimension)
-        )
-        obs, acts, dns = run_CMAES_SS(
-            objective_fct=function, x_start=_x_start, sigma=sigma
-        )
-        observations.extend(obs)
-        actions.extend(acts)
-        dones.extend(dns)
-    np.savez(
-        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz",
-        observations=observations,
-        actions=actions,
-        dones=dones,
-    )
-    return np.load(
-        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"
-    )
-
-
-class CMAES_SS:
+class CMAES_CS:
     def __init__(self, x_start, sigma):
         N = len(x_start)
         self.params = CMAESParameters(N)
@@ -113,11 +36,9 @@ class CMAES_SS:
         N = len(self.x_mean)
         x_old = self.x_mean
 
-        # Sort by fitness and compute weighted mean into xmean
         arx = arx[np.argsort(fit_vals)]
         self.fit_vals = np.sort(fit_vals)
 
-        # Update mean
         self.x_mean = np.sum(
             arx[0 : self.params.mu] * self.params.weights[: self.params.mu, None],
             axis=0,
@@ -146,12 +67,13 @@ class CMAES_SS:
             + self.params.cmu * ar_temp.T.dot(np.diag(self.params.weights)).dot(ar_temp)
         )
 
-        expert_sigma = self.sigma * np.exp(
+        # Adapt step-size sigma
+        self.sigma = self.sigma * np.exp(
             (self.params.cs / self.params.damps)
             * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
 
-        return self.ps, expert_sigma
+        return self.ps, self.sigma
 
     def stop(self):
         res = {}

@@ -7,15 +7,22 @@ def main():
         "--algorithm",
         type=str,
         help="The dataset to use",
-        choices=["baseline", "optimized", "step_size", "step_size_imit", "testing"],
-        default="step_size_imit",
+        choices=[
+            "baseline",
+            "optimized",
+            "step_size",
+            "step_size_imit",
+            "decay_rate_cs",
+            "testing",
+        ],
+        default="decay_rate_cs",
     )
     parser.add_argument(
         "--dimension",
         type=int,
         help="The dimension of the problem",
         choices=[i for i in range(-1, 41) if i != 0 and i != 1],
-        default=2,
+        default=40,
     )
     parser.add_argument(
         "--x_start",
@@ -88,6 +95,19 @@ def main():
 
     elif args.algorithm == "step_size_imit":
         from Environments.Step_Size.CMA_ES_SS_IMIT import run
+
+        run(
+            args.dimension,
+            args.x_start,
+            args.sigma,
+            args.instance,
+            args.max_episode_steps,
+            args.train_repeats,
+            args.test_repeats,
+        )
+
+    elif args.algorithm == "decay_rate_cs":
+        from Environments.Decay_Rate.CMA_ES_CS_run import run
 
         run(
             args.dimension,

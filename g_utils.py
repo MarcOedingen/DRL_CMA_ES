@@ -4,6 +4,7 @@ from gymnasium.wrappers import TimeLimit
 from cocoex.function import BenchmarkFunction
 from sklearn.model_selection import train_test_split
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
+from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 
 from stable_baselines3.common.callbacks import BaseCallback
 
@@ -76,12 +77,12 @@ def split_train_test_functions(
 
 def get_env(env_name, test_func, x_start, sigma):
     if env_name == "step_size":
-        return TimeLimit(
-            CMA_ES_SS(objective_funcs=[test_func], x_start=x_start, sigma=sigma),
-            max_episode_steps=int(1e4),
-        )
+        env = CMA_ES_SS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+    elif env_name == "decay_rate":
+        env = CMA_ES_CS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:
         raise NotImplementedError
+    return TimeLimit(env, max_episode_steps=1000)
 
 
 def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):

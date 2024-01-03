@@ -46,40 +46,43 @@ class CMAES:
     def tell(self, arx, fit_vals):
         self.count_eval += len(fit_vals)
         N = len(self.x_mean)
-        par = self.params
         x_old = self.x_mean
 
         arx = arx[np.argsort(fit_vals)]
         self.fit_vals = np.sort(fit_vals)
 
-        self.x_mean = np.sum(arx[0 : par.mu] * par.weights[: par.mu, None], axis=0)
+        self.x_mean = np.sum(
+            arx[0 : self.params.mu] * self.params.weights[: self.params.mu, None],
+            axis=0,
+        )
 
         # Update evolution paths
-        self.ps = (1 - par.cs) * self.ps + np.sqrt(
-            par.cs * (2 - par.cs) * par.mueff
+        self.ps = (1 - self.params.cs) * self.ps + np.sqrt(
+            self.params.cs * (2 - self.params.cs) * self.params.mueff
         ) * np.dot(self.inv_sqrt_C, (self.x_mean - x_old)) / self.sigma
         h_sig = np.linalg.norm(self.ps) / np.sqrt(
-            1 - (1 - par.cs) ** (2 * self.count_eval / par.lam)
-        ) / par.chiN < 1.4 + 2 / (N + 1)
-        self.pc = (1 - par.cc) * self.pc + h_sig * np.sqrt(
-            par.cc * (2 - par.cc) * par.mueff
+            1 - (1 - self.params.cs) ** (2 * self.count_eval / self.params.lam)
+        ) / self.params.chiN < 1.4 + 2 / (N + 1)
+        self.pc = (1 - self.params.cc) * self.pc + h_sig * np.sqrt(
+            self.params.cc * (2 - self.params.cc) * self.params.mueff
         ) * (self.x_mean - x_old) / self.sigma
 
         # Adapt covariance matrix C
-        ar_temp = (arx[0 : par.mu] - x_old) / self.sigma
+        ar_temp = (arx[0 : self.params.mu] - x_old) / self.sigma
         self.C = (
-            (1 - par.c1 - par.cmu) * self.C
-            + par.c1
+            (1 - self.params.c1 - self.params.cmu) * self.C
+            + self.params.c1
             * (
                 np.outer(self.pc, self.pc)
-                + (1 - h_sig) * par.cc * (2 - par.cc) * self.C
+                + (1 - h_sig) * self.params.cc * (2 - self.params.cc) * self.C
             )
-            + par.cmu * ar_temp.T.dot(np.diag(par.weights)).dot(ar_temp)
+            + self.params.cmu * ar_temp.T.dot(np.diag(self.params.weights)).dot(ar_temp)
         )
 
         # Adapt step-size sigma
         self.sigma = self.sigma * np.exp(
-            (par.cs / par.damps) * (np.linalg.norm(self.ps) / par.chiN - 1)
+            (self.params.cs / self.params.damps)
+            * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
 
     def stop(self):
