@@ -20,7 +20,7 @@ class CMA_ES_SS(gymnasium.Env):
         self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
 
         self.action_space = gymnasium.spaces.Box(
-            low=1e-30, high=1, shape=(1,), dtype=np.float64
+            low=1e-10, high=1, shape=(1,), dtype=np.float64
         )
         self.observation_space = gymnasium.spaces.Box(
             low=-np.inf, high=np.inf, shape=(2 + 2 * self.h,), dtype=np.float64

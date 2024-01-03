@@ -8,7 +8,7 @@ def main():
         type=str,
         help="The dataset to use",
         choices=["baseline", "optimized", "step_size", "step_size_imit", "testing"],
-        default="step_size_imit",
+        default="step_size",
     )
     parser.add_argument(
         "--dimension",
@@ -63,7 +63,7 @@ def main():
         run(args.dimension, args.x_start, args.sigma, args.instance)
 
     elif args.algorithm == "testing":
-        from Environments.Step_Size.run_model import run
+        from run_model import run
 
         run(args.dimension, args.x_start, args.sigma, args.instance, args.policy)
 
