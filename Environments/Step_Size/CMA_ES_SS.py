@@ -5,7 +5,7 @@ from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
-def runCMAES(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
+def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_SS(x_start, sigma)
     observations, actions, dones = [np.hstack((np.array(sigma), np.zeros(81)))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
@@ -16,6 +16,7 @@ def runCMAES(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
         X = es.ask()
         fit = [objective_fct(x) for x in X]
         ps, new_sigma = es.tell(X, fit)
+        es.sigma = new_sigma
         reward = np.clip(-np.mean(fit), -f_limit, f_limit)
         if iteration > 0:
             difference = (
@@ -61,7 +62,7 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
             if x_start == 0
             else np.random.uniform(-5, 5, function.dimension)
         )
-        obs, acts, dns = runCMAES(objective_fct=function, x_start=_x_start, sigma=sigma)
+        obs, acts, dns = run_CMAES_SS(objective_fct=function, x_start=_x_start, sigma=sigma)
         observations.extend(obs)
         actions.extend(acts)
         dones.extend(dns)
