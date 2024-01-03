@@ -62,7 +62,9 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
             if x_start == 0
             else np.random.uniform(-5, 5, function.dimension)
         )
-        obs, acts, dns = run_CMAES_SS(objective_fct=function, x_start=_x_start, sigma=sigma)
+        obs, acts, dns = run_CMAES_SS(
+            objective_fct=function, x_start=_x_start, sigma=sigma
+        )
         observations.extend(obs)
         actions.extend(acts)
         dones.extend(dns)

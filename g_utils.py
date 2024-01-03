@@ -16,6 +16,7 @@ class StopOnAllFunctionsEvaluated(BaseCallback):
             return False
         return True
 
+
 def split_train_test_functions(
     dimensions,
     instances,
@@ -39,11 +40,14 @@ def split_train_test_functions(
     )
     np.random.shuffle(train_funcs)
     test_funcs = [
-        BenchmarkFunction("bbob", int(test_id), int(dimensions[index]), int(instances[index]))
+        BenchmarkFunction(
+            "bbob", int(test_id), int(dimensions[index]), int(instances[index])
+        )
         for index, test_id in enumerate(test_ids)
     ]
     test_funcs = np.repeat(test_funcs, repeats=test_repeats)
     return train_funcs, test_funcs
+
 
 def get_env(env_name, test_func, x_start, sigma):
     if env_name == "step_size":
@@ -51,10 +55,13 @@ def get_env(env_name, test_func, x_start, sigma):
     else:
         raise NotImplementedError
 
+
 def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name, repeats=10):
     rewards = np.zeros(len(test_funcs))
     for index, test_func in enumerate(test_funcs):
-        eval_env = get_env(env_name=env_name, test_func=test_func, x_start=x_start, sigma=sigma)
+        eval_env = get_env(
+            env_name=env_name, test_func=test_func, x_start=x_start, sigma=sigma
+        )
         obs, _ = eval_env.reset(verbose=0)
         terminated, truncated = False, False
         while not (terminated or truncated):
@@ -62,7 +69,9 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name, repeats=10):
             obs, reward, terminated, truncated, info = eval_env.step(action)
         rewards[index] = -reward
 
-    diffs = np.abs(rewards - np.array([test_func.best_value() for test_func in test_funcs]))
+    diffs = np.abs(
+        rewards - np.array([test_func.best_value() for test_func in test_funcs])
+    )
     return np.mean(diffs.reshape(-1, repeats), axis=1)
 
 

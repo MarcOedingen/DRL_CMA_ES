@@ -36,8 +36,18 @@ def run(dimension, x_start, sigma, instance, policy):
         ppo_model.policy = pickle.load(f)
 
     function_ids = sorted(list(set([test_func.id for test_func in functions])))
-    diffs = g_utils.evaluate_agent(test_funcs=functions, x_start=x_start, sigma=sigma, ppo_model=ppo_model, env_name="step_size", repeats=1)
+    diffs = g_utils.evaluate_agent(
+        test_funcs=functions,
+        x_start=x_start,
+        sigma=sigma,
+        ppo_model=ppo_model,
+        env_name="step_size",
+        repeats=1,
+    )
     g_utils.print_pretty_table(
-        func_dimensions=func_dimensions, func_instances=func_instances, func_ids=function_ids, results=diffs
+        func_dimensions=func_dimensions,
+        func_instances=func_instances,
+        func_ids=function_ids,
+        results=diffs,
     )
     print(f"Mean Difference: {np.mean(diffs)} +/- {np.std(diffs)}")
