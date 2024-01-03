@@ -117,7 +117,6 @@ def run(dimension, x_start, sigma, instance):
         )
 
     print("Evaluating the agent on the test functions...")
-    function_ids = sorted(list(set([test_func.id for test_func in test_funcs])))
     results = g_utils.evaluate_agent(
         test_funcs=test_funcs,
         x_start=x_start,
@@ -128,5 +127,5 @@ def run(dimension, x_start, sigma, instance):
     g_utils.print_pretty_table(
         results=results,
     )
-    means = [row['stats'][0] for row in results]
+    means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")

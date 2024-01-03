@@ -49,5 +49,5 @@ def run(dimension, x_start, sigma, instance, policy):
         func_ids=function_ids,
         results=results,
     )
-    means = [row['stats'][0] for row in results]
+    means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")

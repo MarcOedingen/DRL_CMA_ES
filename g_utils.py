@@ -27,6 +27,7 @@ def create_benchmark_functions(ids, dimensions, instances):
     )
     return funcs
 
+
 def split_train_test_functions(
     dimensions,
     instances,
@@ -44,15 +45,19 @@ def split_train_test_functions(
         train_dimensions = np.random.randint(2, 41, size=len(train_ids) * train_repeats)
         test_dimensions = np.random.randint(2, 41, size=len(test_ids) * test_repeats)
     else:
-        train_dimensions = np.repeat(dimensions[:len(train_ids)], repeats=train_repeats)
-        test_dimensions = np.repeat(dimensions[:len(test_ids)], repeats=test_repeats)
+        train_dimensions = np.repeat(
+            dimensions[: len(train_ids)], repeats=train_repeats
+        )
+        test_dimensions = np.repeat(dimensions[: len(test_ids)], repeats=test_repeats)
 
     if not np.all(instances == instances[0]):
-        train_instances = np.random.randint(1, 1001, size=len(train_ids) * train_repeats)
+        train_instances = np.random.randint(
+            1, 1001, size=len(train_ids) * train_repeats
+        )
         test_instances = np.random.randint(1, 1001, size=len(test_ids) * test_repeats)
     else:
-        train_instances = np.repeat(instances[:len(train_ids)], repeats=train_repeats)
-        test_instances = np.repeat(instances[:len(test_ids)], repeats=test_repeats)
+        train_instances = np.repeat(instances[: len(train_ids)], repeats=train_repeats)
+        test_instances = np.repeat(instances[: len(test_ids)], repeats=test_repeats)
 
     train_ids = np.repeat(train_ids, repeats=train_repeats)
     test_ids = np.repeat(test_ids, repeats=test_repeats)
@@ -60,7 +65,9 @@ def split_train_test_functions(
     np.random.shuffle(train_ids)
     np.random.shuffle(test_ids)
 
-    train_funcs = create_benchmark_functions(train_ids, train_dimensions, train_instances)
+    train_funcs = create_benchmark_functions(
+        train_ids, train_dimensions, train_instances
+    )
     test_funcs = create_benchmark_functions(test_ids, test_dimensions, test_instances)
 
     return train_funcs, test_funcs
@@ -99,7 +106,19 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
                 obs, reward, terminated, truncated, info = eval_env.step(action)
             grp_rewards[reward_index] = abs(-reward - test_funcs[index].best_value())
             reward_index += 1
-        results.append({"id": key, "stats": np.array([np.mean(grp_rewards), np.std(grp_rewards), np.max(grp_rewards), np.min(grp_rewards)])})
+        results.append(
+            {
+                "id": key,
+                "stats": np.array(
+                    [
+                        np.mean(grp_rewards),
+                        np.std(grp_rewards),
+                        np.max(grp_rewards),
+                        np.min(grp_rewards),
+                    ]
+                ),
+            }
+        )
     return results
 
 
@@ -122,6 +141,7 @@ def print_pretty_table_simp(func_dimensions, func_instances, func_ids, results):
         )
     print(table)
 
+
 def print_pretty_table(results):
     table = PrettyTable()
     table.field_names = [
@@ -137,7 +157,7 @@ def print_pretty_table(results):
                 results[i]["id"],
                 f"{results[i]['stats'][0]:.18f} ± {results[i]['stats'][1]:.18f}",
                 f"{results[i]['stats'][2]:.18f}",
-                f"{results[i]['stats'][3]:.18f}"
+                f"{results[i]['stats'][3]:.18f}",
             ]
         )
     print(table)

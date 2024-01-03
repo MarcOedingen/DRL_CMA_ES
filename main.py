@@ -24,12 +24,7 @@ def main():
         choices=[-1, 0],
         default=0,
     )
-    parser.add_argument(
-        "--sigma",
-        type=float,
-        help="The initial sigma",
-        default=0.5
-    )
+    parser.add_argument("--sigma", type=float, help="The initial sigma", default=0.5)
     parser.add_argument(
         "--instance",
         type=int,
