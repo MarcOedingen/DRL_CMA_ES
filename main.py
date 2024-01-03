@@ -52,7 +52,7 @@ def main():
         "--max_episode_steps",
         type=int,
         help="The max episode steps",
-        default=int(1e4),
+        default=int(1e3 * 40**2),
     )
 
     parser.add_argument(

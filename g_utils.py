@@ -82,7 +82,7 @@ def get_env(env_name, test_func, x_start, sigma):
         env = CMA_ES_CS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:
         raise NotImplementedError
-    return TimeLimit(env, max_episode_steps=1000)
+    return TimeLimit(env, max_episode_steps=int(1e3 * 40**2))
 
 
 def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):

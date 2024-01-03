@@ -21,7 +21,7 @@ class CMA_ES_CS(gymnasium.Env):
         self.hist_cs = deque(np.zeros(self.h), maxlen=self.h)
 
         self.action_space = gymnasium.spaces.Box(
-            low=1e-20, high=2, shape=(1,), dtype=np.float64
+            low=1e-10, high=1, shape=(1,), dtype=np.float64
         )
         self.observation_space = gymnasium.spaces.Box(
             low=-np.inf, high=np.inf, shape=(3 + 2 * self.h,), dtype=np.float64
