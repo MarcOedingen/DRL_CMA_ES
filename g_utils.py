@@ -73,26 +73,37 @@ def get_env(env_name, test_func, x_start, sigma):
         raise NotImplementedError
 
 
-def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name, repeats=10):
-    rewards = np.zeros(len(test_funcs))
+def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
+    groups = {}
     for index, test_func in enumerate(test_funcs):
-        eval_env = get_env(
-            env_name=env_name, test_func=test_func, x_start=x_start, sigma=sigma
-        )
-        obs, _ = eval_env.reset(verbose=0)
-        terminated, truncated = False, False
-        while not (terminated or truncated):
-            action, _states = ppo_model.predict(obs, deterministic=True)
-            obs, reward, terminated, truncated, info = eval_env.step(action)
-        rewards[index] = -reward
+        key = test_func.id
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(index)
 
-    diffs = np.abs(
-        rewards - np.array([test_func.best_value() for test_func in test_funcs])
-    )
-    return np.mean(diffs.reshape(-1, repeats), axis=1)
+    results = []
+    for key, indices in groups.items():
+        grp_rewards = np.zeros(len(indices))
+        reward_index = 0
+        for index in indices:
+            eval_env = get_env(
+                env_name=env_name,
+                test_func=test_funcs[index],
+                x_start=x_start,
+                sigma=sigma,
+            )
+            obs, _ = eval_env.reset(verbose=0)
+            terminated, truncated = False, False
+            while not (terminated or truncated):
+                action, _states = ppo_model.predict(obs, deterministic=True)
+                obs, reward, terminated, truncated, info = eval_env.step(action)
+            grp_rewards[reward_index] = abs(-reward - test_funcs[index].best_value())
+            reward_index += 1
+        results.append({"id": key, "stats": np.array([np.mean(grp_rewards), np.std(grp_rewards), np.max(grp_rewards), np.min(grp_rewards)])})
+    return results
 
 
-def print_pretty_table(func_dimensions, func_instances, func_ids, results):
+def print_pretty_table_simp(func_dimensions, func_instances, func_ids, results):
     table = PrettyTable()
     table.field_names = [
         "Function",
@@ -107,6 +118,26 @@ def print_pretty_table(func_dimensions, func_instances, func_ids, results):
                 func_dimensions[i],
                 func_instances[i],
                 f"{results[i]:.18f}",
+            ]
+        )
+    print(table)
+
+def print_pretty_table(results):
+    table = PrettyTable()
+    table.field_names = [
+        "Function",
+        "Mean Difference |f(x_best) - f(x_opt)|",
+        "Max Difference |f(x_best) - f(x_opt)|",
+        "Min Difference |f(x_best) - f(x_opt)|",
+    ]
+    results = sorted(results, key=lambda k: k["id"])
+    for i in range(len(results)):
+        table.add_row(
+            [
+                results[i]["id"],
+                f"{results[i]['stats'][0]:.18f} ± {results[i]['stats'][1]:.18f}",
+                f"{results[i]['stats'][2]:.18f}",
+                f"{results[i]['stats'][3]:.18f}"
             ]
         )
     print(table)

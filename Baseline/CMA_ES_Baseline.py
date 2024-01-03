@@ -134,7 +134,7 @@ def run(dimension, x_start, sigma, instance):
         x_min = runCMAES(objective_fct=function, x_start=_x_start, sigma=sigma)[0]
         results_CMA_ES.append(abs(function(x_min) - function.best_value()))
 
-    g_utils.print_pretty_table(
+    g_utils.print_pretty_table_simp(
         func_dimensions=func_dimensions,
         func_instances=func_instances,
         func_ids=func_ids,

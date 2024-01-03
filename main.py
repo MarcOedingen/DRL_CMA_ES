@@ -8,7 +8,7 @@ def main():
         type=str,
         help="The dataset to use",
         choices=["baseline", "optimized", "step_size", "step_size_imit", "testing"],
-        default="step_size",
+        default="step_size_imit",
     )
     parser.add_argument(
         "--dimension",
@@ -24,7 +24,12 @@ def main():
         choices=[-1, 0],
         default=0,
     )
-    parser.add_argument("--sigma", type=float, help="The initial sigma", default=0.5)
+    parser.add_argument(
+        "--sigma",
+        type=float,
+        help="The initial sigma",
+        default=0.5
+    )
     parser.add_argument(
         "--instance",
         type=int,

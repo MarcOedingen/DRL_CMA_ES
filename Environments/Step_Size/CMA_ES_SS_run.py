@@ -46,7 +46,7 @@ def run(dimension, x_start, sigma, instance):
 
     print("Evaluating the agent on the test functions...")
     function_ids = sorted(list(set([test_func.id for test_func in test_funcs])))
-    diffs = g_utils.evaluate_agent(
+    results = g_utils.evaluate_agent(
         test_funcs=test_funcs,
         x_start=x_start,
         sigma=sigma,
@@ -54,9 +54,7 @@ def run(dimension, x_start, sigma, instance):
         env_name="step_size",
     )
     g_utils.print_pretty_table(
-        func_dimensions=func_dimensions,
-        func_instances=func_instances,
-        func_ids=function_ids,
-        results=diffs,
+        results=results,
     )
-    print(f"Mean Difference: {np.mean(diffs)} +/- {np.std(diffs)}")
+    means = [row['stats'][0] for row in results]
+    print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")

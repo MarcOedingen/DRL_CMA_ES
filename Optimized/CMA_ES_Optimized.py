@@ -32,7 +32,7 @@ def run(dimension, x_start, sigma, instance):
         es.optimize(function)
         results_CMA_ES.append(abs(function(es.best.x) - function.best_value()))
 
-    g_utils.print_pretty_table(
+    g_utils.print_pretty_table_simp(
         func_dimensions=func_dimensions,
         func_instances=func_instances,
         func_ids=func_ids,
