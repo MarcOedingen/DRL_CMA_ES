@@ -27,7 +27,7 @@ class CMA_ES_SS(gymnasium.Env):
         )
 
         self.iteration = 0
-        self._stop = False
+        self.stop = False
         self._f_limit = np.power(10, 28)
 
     def step(self, action):
@@ -45,7 +45,7 @@ class CMA_ES_SS(gymnasium.Env):
 
         # Check if the algorithm should stop
         # Terminated if all functions have been evaluated
-        terminated = self._stop = self.curr_index >= len(self.objetive_funcs)
+        terminated = self.stop = self.curr_index >= len(self.objetive_funcs)
         # Truncated if the current function has been evaluated
         truncated = bool(self.cma_es.stop())
 
@@ -76,7 +76,7 @@ class CMA_ES_SS(gymnasium.Env):
             self.curr_index += 1
 
         if self.curr_index >= len(self.objetive_funcs):
-            self._stop = True
+            self.stop = True
 
         # Update iteration
         self.iteration += 1

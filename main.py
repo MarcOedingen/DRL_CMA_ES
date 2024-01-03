@@ -41,6 +41,27 @@ def main():
         default="ppo_policy_ss",
     )
 
+    parser.add_argument(
+        "--max_episode_steps",
+        type=int,
+        help="The max episode steps",
+        default=int(1e4),
+    )
+
+    parser.add_argument(
+        "--train_repeats",
+        type=int,
+        help="The number of repeats for the training functions",
+        default=10,
+    )
+
+    parser.add_argument(
+        "--test_repeats",
+        type=int,
+        help="The number of repeats for the test functions",
+        default=10,
+    )
+
     args = parser.parse_args()
     if args.algorithm == "baseline":
         from Baseline.CMA_ES_Baseline import run
@@ -55,12 +76,28 @@ def main():
     elif args.algorithm == "step_size":
         from Environments.Step_Size.CMA_ES_SS_run import run
 
-        run(args.dimension, args.x_start, args.sigma, args.instance)
+        run(
+            args.dimension,
+            args.x_start,
+            args.sigma,
+            args.instance,
+            args.max_episode_steps,
+            args.train_repeats,
+            args.test_repeats,
+        )
 
     elif args.algorithm == "step_size_imit":
         from Environments.Step_Size.CMA_ES_SS_IMIT import run
 
-        run(args.dimension, args.x_start, args.sigma, args.instance)
+        run(
+            args.dimension,
+            args.x_start,
+            args.sigma,
+            args.instance,
+            args.max_episode_steps,
+            args.train_repeats,
+            args.test_repeats,
+        )
 
     elif args.algorithm == "testing":
         from run_model import run

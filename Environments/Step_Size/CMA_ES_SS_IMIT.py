@@ -4,6 +4,7 @@ import g_utils
 import numpy as np
 from stable_baselines3 import PPO
 from imitation.algorithms import bc
+from gymnasium.wrappers import TimeLimit
 from stable_baselines3.ppo import MlpPolicy
 from imitation.data.types import Transitions
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
@@ -53,7 +54,9 @@ def create_Transitions(data):
     )
 
 
-def run(dimension, x_start, sigma, instance):
+def run(
+    dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
+):
     print(
         "---------------Running imitation learning for step-size adaptation---------------"
     )
@@ -67,10 +70,16 @@ def run(dimension, x_start, sigma, instance):
     )
 
     train_funcs, test_funcs = g_utils.split_train_test_functions(
-        dimensions=func_dimensions, instances=func_instances
+        dimensions=func_dimensions,
+        instances=func_instances,
+        train_repeats=train_repeats,
+        test_repeats=test_repeats,
     )
 
-    train_env = CMA_ES_SS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma)
+    train_env = TimeLimit(
+        CMA_ES_SS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
+        max_episode_steps=int(max_eps_steps),
+    )
 
     print("Collecting expert samples...")
     expert_samples = collect_expert_samples(
@@ -106,7 +115,8 @@ def run(dimension, x_start, sigma, instance):
     else:
         ppo_model.policy = bc_trainer.policy
         ppo_model.learn(
-            total_timesteps=int(1e6), callback=g_utils.StopOnAllFunctionsEvaluated()
+            total_timesteps=int(max_eps_steps * len(train_funcs) * train_repeats),
+            callback=g_utils.StopOnAllFunctionsEvaluated(),
         )
         pickle.dump(
             ppo_model.policy,

@@ -35,7 +35,6 @@ def run(dimension, x_start, sigma, instance, policy):
     ) as f:
         ppo_model.policy = pickle.load(f)
 
-    function_ids = sorted(list(set([test_func.id for test_func in functions])))
     results = g_utils.evaluate_agent(
         test_funcs=functions,
         x_start=x_start,
@@ -44,9 +43,6 @@ def run(dimension, x_start, sigma, instance, policy):
         env_name="step_size",
     )
     g_utils.print_pretty_table(
-        func_dimensions=func_dimensions,
-        func_instances=func_instances,
-        func_ids=function_ids,
         results=results,
     )
     means = [row["stats"][0] for row in results]

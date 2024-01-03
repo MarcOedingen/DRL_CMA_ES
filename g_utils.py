@@ -1,5 +1,6 @@
 import numpy as np
 from prettytable import PrettyTable
+from gymnasium.wrappers import TimeLimit
 from cocoex.function import BenchmarkFunction
 from sklearn.model_selection import train_test_split
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
@@ -10,10 +11,10 @@ from stable_baselines3.common.callbacks import BaseCallback
 class StopOnAllFunctionsEvaluated(BaseCallback):
     def __init__(self, verbose=0):
         super(StopOnAllFunctionsEvaluated, self).__init__(verbose)
-        self._stop = False
+        self.stop = False
 
     def _on_step(self) -> bool:
-        if self.model.env.envs[0].env._stop:
+        if self.model.env.envs[0].env.stop:
             return False
         return True
 
@@ -75,7 +76,10 @@ def split_train_test_functions(
 
 def get_env(env_name, test_func, x_start, sigma):
     if env_name == "step_size":
-        return CMA_ES_SS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        return TimeLimit(
+            CMA_ES_SS(objective_funcs=[test_func], x_start=x_start, sigma=sigma),
+            max_episode_steps=int(1e4),
+        )
     else:
         raise NotImplementedError
 
