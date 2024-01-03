@@ -32,7 +32,7 @@ def split_train_test_functions(
     train_funcs = np.repeat(
         [
             BenchmarkFunction(
-                "bbob", int(train_id), dimensions[index], instances[index]
+                "bbob", int(train_id), int(dimensions[index]), int(instances[index])
             )
             for index, train_id in enumerate(train_ids)
         ],
