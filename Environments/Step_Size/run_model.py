@@ -28,7 +28,7 @@ def run(dimension, x_start, sigma, instance, policy):
 
     ppo_model = PPO(
         "MlpPolicy",
-        CMA_ES_SS(objetive_funcs=functions, x_start=x_start, sigma=sigma),
+        CMA_ES_SS(objective_funcs=functions, x_start=x_start, sigma=sigma),
         verbose=0,
     )
     with open(

@@ -49,7 +49,7 @@ def split_train_test_functions(
 def evaluate_agent(test_funcs, x_start, sigma, ppo_model):
     rewards = np.zeros(len(test_funcs))
     for index, test_func in enumerate(test_funcs):
-        eval_env = CMA_ES_SS(objetive_funcs=[test_func], x_start=x_start, sigma=sigma)
+        eval_env = CMA_ES_SS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
         obs, _ = eval_env.reset(verbose=0)
         terminated, truncated = False, False
         steps = 0

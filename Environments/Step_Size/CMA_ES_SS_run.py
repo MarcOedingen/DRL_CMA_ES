@@ -22,7 +22,7 @@ def run(dimension, x_start, sigma, instance):
         dimensions=func_dimensions, instances=func_instances
     )
 
-    train_env = CMA_ES_SS(objetive_funcs=train_funcs, x_start=x_start, sigma=sigma)
+    train_env = CMA_ES_SS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma)
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
     if os.path.exists(
         f"Environments/Step_Size/Policies/ppo_policy_ss_{dimension}D_{instance}I.pkl"
