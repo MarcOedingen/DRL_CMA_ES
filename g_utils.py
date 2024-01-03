@@ -3,6 +3,7 @@ from prettytable import PrettyTable
 from cocoex.function import BenchmarkFunction
 from sklearn.model_selection import train_test_split
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
+
 from stable_baselines3.common.callbacks import BaseCallback
 
 
@@ -17,6 +18,15 @@ class StopOnAllFunctionsEvaluated(BaseCallback):
         return True
 
 
+def create_benchmark_functions(ids, dimensions, instances):
+    funcs = np.array(
+        [
+            BenchmarkFunction("bbob", int(id_), int(dim), int(inst))
+            for id_, dim, inst in zip(ids, dimensions, instances)
+        ]
+    )
+    return funcs
+
 def split_train_test_functions(
     dimensions,
     instances,
@@ -29,23 +39,30 @@ def split_train_test_functions(
     train_ids, test_ids = train_test_split(
         np.arange(1, n_functions + 1), test_size=test_size, random_state=random_state
     )
-    train_funcs = np.repeat(
-        [
-            BenchmarkFunction(
-                "bbob", int(train_id), int(dimensions[index]), int(instances[index])
-            )
-            for index, train_id in enumerate(train_ids)
-        ],
-        repeats=train_repeats,
-    )
-    np.random.shuffle(train_funcs)
-    test_funcs = [
-        BenchmarkFunction(
-            "bbob", int(test_id), int(dimensions[index]), int(instances[index])
-        )
-        for index, test_id in enumerate(test_ids)
-    ]
-    test_funcs = np.repeat(test_funcs, repeats=test_repeats)
+
+    if not np.all(dimensions == dimensions[0]):
+        train_dimensions = np.random.randint(2, 41, size=len(train_ids) * train_repeats)
+        test_dimensions = np.random.randint(2, 41, size=len(test_ids) * test_repeats)
+    else:
+        train_dimensions = np.repeat(dimensions[:len(train_ids)], repeats=train_repeats)
+        test_dimensions = np.repeat(dimensions[:len(test_ids)], repeats=test_repeats)
+
+    if not np.all(instances == instances[0]):
+        train_instances = np.random.randint(1, 1001, size=len(train_ids) * train_repeats)
+        test_instances = np.random.randint(1, 1001, size=len(test_ids) * test_repeats)
+    else:
+        train_instances = np.repeat(instances[:len(train_ids)], repeats=train_repeats)
+        test_instances = np.repeat(instances[:len(test_ids)], repeats=test_repeats)
+
+    train_ids = np.repeat(train_ids, repeats=train_repeats)
+    test_ids = np.repeat(test_ids, repeats=test_repeats)
+
+    np.random.shuffle(train_ids)
+    np.random.shuffle(test_ids)
+
+    train_funcs = create_benchmark_functions(train_ids, train_dimensions, train_instances)
+    test_funcs = create_benchmark_functions(test_ids, test_dimensions, test_instances)
+
     return train_funcs, test_funcs
 
 
