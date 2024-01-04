@@ -20,7 +20,7 @@ class CMA_ES_SS(gymnasium.Env):
         self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
 
         self.action_space = gymnasium.spaces.Box(
-            low=1e-10, high=1, shape=(1,), dtype=np.float64
+            low=1e-15, high=1, shape=(1,), dtype=np.float64
         )
         self.observation_space = gymnasium.spaces.Box(
             low=-np.inf, high=np.inf, shape=(2 + 2 * self.h,), dtype=np.float64
@@ -30,6 +30,8 @@ class CMA_ES_SS(gymnasium.Env):
         self.stop = False
         self._f_limit = np.power(10, 28)
 
+        self._last_achieved = 0
+
     def step(self, action):
         self.curr_sigma = action[0]
         self.cma_es.sigma = self.curr_sigma
@@ -38,6 +40,8 @@ class CMA_ES_SS(gymnasium.Env):
         X = self.cma_es.ask()
         fit = [self.objetive_funcs[self.curr_index](x) for x in X]
         new_ps, _ = self.cma_es.tell(X, fit)
+
+        self._last_achieved = np.min(fit)
 
         # Calculate reward (Turn minimization into maximization)
         reward = -np.min(fit)
@@ -86,7 +90,10 @@ class CMA_ES_SS(gymnasium.Env):
     def reset(self, *, seed=None, options=None, verbose=1):
         if verbose > 0 and self.curr_index < len(self.objetive_funcs):
             print(
-                f"Training on function {self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].function} | {(self.curr_index / len(self.objetive_funcs)) * 100}% done"
+                f"{((self.curr_index+1) / len(self.objetive_funcs) * 100):6.2f}% of training completed"
+                f" | {self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value():30.10f} optimum"
+                f" | {self._last_achieved:30.10f} achieved"
+                f" | {np.abs(self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value() - self._last_achieved):30.18f} difference"
             )
         self.curr_sigma = self.sigma
         self.curr_ps = 0
