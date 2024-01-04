@@ -16,14 +16,14 @@ def main():
             "decay_rate_cs_imit",
             "testing",
         ],
-        default="decay_rate_cs",
+        default="step_size_imit",
     )
     parser.add_argument(
         "--dimension",
         type=int,
         help="The dimension of the problem",
         choices=[i for i in range(-1, 41) if i != 0 and i != 1],
-        default=40,
+        default=10,
     )
     parser.add_argument(
         "--x_start",

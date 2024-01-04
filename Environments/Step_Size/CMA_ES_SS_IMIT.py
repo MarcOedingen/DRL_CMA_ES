@@ -10,11 +10,10 @@ from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Step_Size.CMA_ES_SS import collect_expert_samples
 
 
-def create_Transitions(data):
-    condition = np.all(
-        data["observations"] == np.concatenate([np.array([0.5]), np.zeros(81)]), axis=1
-    )
-    indices = np.where(condition)[0]
+def create_Transitions(data, n_train_funcs):
+    shifted_dones = np.roll(np.where(data["dones"])[0], 1)
+    shifted_dones[0] = 0
+    indices = shifted_dones + np.concatenate(([0], np.arange(2, n_train_funcs + 1)))
 
     # Adjust the indices array
     if len(indices) > 0:
@@ -88,7 +87,7 @@ def run(
         sigma=sigma,
         bbob_functions=train_funcs,
     )
-    transitions = create_Transitions(expert_samples)
+    transitions = create_Transitions(data=expert_samples, n_train_funcs=len(train_funcs))
 
     bc_trainer = bc.BC(
         observation_space=train_env.observation_space,

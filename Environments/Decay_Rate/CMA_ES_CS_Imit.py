@@ -6,17 +6,14 @@ from stable_baselines3 import PPO
 from imitation.algorithms import bc
 from gymnasium.wrappers import TimeLimit
 from imitation.data.types import Transitions
-from Parameters.CMA_ES_Parameters import CMAESParameters
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 from Environments.Decay_Rate.CMA_ES_CS import collect_expert_samples
 
 
-def create_Transitions(data, start_cs):
-    start_sigma_cs = np.array([0.5, start_cs])
-    condition = np.all(
-        data["observations"] == np.concatenate([start_sigma_cs, np.zeros(81)]), axis=1
-    )
-    indices = np.where(condition)[0]
+def create_Transitions(data, n_train_funcs):
+    shifted_dones = np.roll(np.where(data["dones"])[0], 1)
+    shifted_dones[0] = 0
+    indices = shifted_dones + np.concatenate(([0], np.arange(2, n_train_funcs + 1)))
 
     # Adjust the indices array
     if len(indices) > 0:
@@ -92,7 +89,8 @@ def run(
     )
 
     transitions = create_Transitions(
-        data=expert_samples, start_cs=CMAESParameters(dimension).cs
+        data=expert_samples,
+        n_train_funcs=len(train_funcs),
     )
 
     bc_trainer = bc.BC(

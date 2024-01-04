@@ -4,6 +4,17 @@ import numpy as np
 from stable_baselines3 import PPO
 from cocoex.function import BenchmarkFunction
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
+from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
+
+def get_path(dimension, instance, policy):
+    # Determine whether the path is for step size or decay rate
+    if "_ss_" in policy:
+        path = "Environments/Step_Size/Policies/"
+    elif "_cs_" in policy:
+        path = "Environments/Decay_Rate/Policies/"
+    else:
+        raise NotImplementedError
+    return path + f"{policy}_{dimension}D_{instance}I.pkl"
 
 
 def run(dimension, x_start, sigma, instance, policy):
@@ -31,7 +42,7 @@ def run(dimension, x_start, sigma, instance, policy):
         verbose=0,
     )
     with open(
-        f"Environments/Step_Size/Policies/{policy}_{dimension}D_{instance}I.pkl", "rb"
+        get_path(dimension=dimension, instance=instance, policy=policy), "rb"
     ) as f:
         ppo_model.policy = pickle.load(f)
 
