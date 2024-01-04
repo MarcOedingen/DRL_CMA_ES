@@ -95,7 +95,7 @@ def main():
         )
 
     elif args.algorithm == "step_size_imit":
-        from Environments.Step_Size.CMA_ES_SS_IMIT import run
+        from Environments.Step_Size.CMA_ES_SS_Imit import run
 
         run(
             args.dimension,
