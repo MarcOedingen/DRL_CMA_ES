@@ -6,8 +6,8 @@ from cocoex.function import BenchmarkFunction
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 
+
 def get_path(dimension, instance, policy):
-    # Determine whether the path is for step size or decay rate
     if "_ss_" in policy:
         path = "Environments/Step_Size/Policies/"
     elif "_cs_" in policy:
@@ -15,6 +15,15 @@ def get_path(dimension, instance, policy):
     else:
         raise NotImplementedError
     return path + f"{policy}_{dimension}D_{instance}I.pkl"
+
+
+def get_env(functions, x_start, sigma, policy):
+    if "_ss_" in policy:
+        return "step_size", CMA_ES_SS(objective_funcs=functions, x_start=x_start, sigma=sigma)
+    elif "_cs_" in policy:
+        return "decay_rate", CMA_ES_CS(objective_funcs=functions, x_start=x_start, sigma=sigma)
+    else:
+        raise NotImplementedError
 
 
 def run(dimension, x_start, sigma, instance, policy):
@@ -36,13 +45,15 @@ def run(dimension, x_start, sigma, instance, policy):
         )
     ]
 
+    env_name, env = get_env(functions, x_start, sigma, policy)
+
     ppo_model = PPO(
         "MlpPolicy",
-        CMA_ES_SS(objective_funcs=functions, x_start=x_start, sigma=sigma),
+        env,
         verbose=0,
     )
     with open(
-        get_path(dimension=dimension, instance=instance, policy=policy), "rb"
+            get_path(dimension=dimension, instance=instance, policy=policy), "rb"
     ) as f:
         ppo_model.policy = pickle.load(f)
 
@@ -51,7 +62,7 @@ def run(dimension, x_start, sigma, instance, policy):
         x_start=x_start,
         sigma=sigma,
         ppo_model=ppo_model,
-        env_name="step_size",
+        env_name=env_name,
     )
     g_utils.print_pretty_table(
         results=results,
