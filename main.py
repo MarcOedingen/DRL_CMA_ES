@@ -13,6 +13,7 @@ def main():
             "step_size",
             "step_size_imit",
             "decay_rate_cs",
+            "decay_rate_cs_imit",
             "testing",
         ],
         default="decay_rate_cs",
@@ -108,6 +109,19 @@ def main():
 
     elif args.algorithm == "decay_rate_cs":
         from Environments.Decay_Rate.CMA_ES_CS_run import run
+
+        run(
+            args.dimension,
+            args.x_start,
+            args.sigma,
+            args.instance,
+            args.max_episode_steps,
+            args.train_repeats,
+            args.test_repeats,
+        )
+
+    elif args.algorithm == "decay_rate_cs_imit":
+        from Environments.Decay_Rate.CMA_ES_CS_Imit import run
 
         run(
             args.dimension,

@@ -1,5 +1,85 @@
+import os
 import numpy as np
+from tqdm import tqdm
+from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
+
+
+def run_CMAES_CS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
+    es = CMAES_CS(x_start, sigma)
+    start_sigma_cs = np.array([sigma, es.params.cs])
+    observations, actions, dones = [np.hstack((start_sigma_cs, np.zeros(81)))], [], []
+    hist_fit_vals = deque(np.zeros(h), maxlen=h)
+    hist_cs = deque(np.zeros(h), maxlen=h)
+    iteration = 0
+    curr_cs, curr_ps, curr_sigma = es.params.cs, 0, sigma
+    while not es.stop():
+        X = es.ask()
+        fit = [objective_fct(x) for x in X]
+        new_ps, new_sigma = es.tell(X, fit)
+        reward = np.clip(-np.mean(fit), -f_limit, f_limit)
+        if iteration > 0:
+            difference = (
+                np.clip(
+                    np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])),
+                    -f_limit,
+                    f_limit,
+                )
+                / reward
+            )
+            hist_fit_vals.append(difference)
+            hist_cs.append(curr_cs)
+        observations.append(
+            np.concatenate(
+                [
+                    np.array([new_sigma]),
+                    np.array([es.params.cs]),
+                    np.array([np.linalg.norm(new_ps) / es.params.chiN - 1]),
+                    np.array(hist_fit_vals),
+                    np.array(hist_cs),
+                ]
+            )
+        )
+        actions.append(es.params.cs)
+        dones.append(False)
+        curr_cs, curr_ps, curr_sigma = es.params.cs, new_ps, new_sigma
+        iteration += 1
+    dones[-1] = True
+    return np.array(observations), np.array(actions), np.array(dones)
+
+
+def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
+    if os.path.isfile(
+        f"Environments/Decay_Rate/Samples/CMA_ES_CS_Samples_{dimension}D_{instance}I.npz"
+    ):
+        data = np.load(
+            f"Environments/Decay_Rate/Samples/CMA_ES_CS_Samples_{dimension}D_{instance}I.npz"
+        )
+        return data
+    observations, actions, dones = [], [], []
+    for function in tqdm(bbob_functions):
+        _x_start = (
+            np.zeros(function.dimension)
+            if x_start == 0
+            else np.random.uniform(-5, 5, function.dimension)
+        )
+        obs, act, done = run_CMAES_CS(
+            objective_fct=function,
+            x_start=_x_start,
+            sigma=sigma,
+        )
+        observations.extend(obs)
+        actions.extend(act)
+        dones.extend(done)
+    np.savez(
+        f"Environments/Decay_Rate/Samples/CMA_ES_CS_Samples_{dimension}D_{instance}I.npz",
+        observations=observations,
+        actions=actions,
+        dones=dones,
+    )
+    return np.load(
+        f"Environments/Decay_Rate/Samples/CMA_ES_CS_Samples_{dimension}D_{instance}I.npz"
+    )
 
 
 class CMAES_CS:

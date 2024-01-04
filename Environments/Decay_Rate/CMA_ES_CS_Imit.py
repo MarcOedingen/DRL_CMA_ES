@@ -6,13 +6,15 @@ from stable_baselines3 import PPO
 from imitation.algorithms import bc
 from gymnasium.wrappers import TimeLimit
 from imitation.data.types import Transitions
-from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
-from Environments.Step_Size.CMA_ES_SS import collect_expert_samples
+from Parameters.CMA_ES_Parameters import CMAESParameters
+from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
+from Environments.Decay_Rate.CMA_ES_CS import collect_expert_samples
 
 
-def create_Transitions(data):
+def create_Transitions(data, start_cs):
+    start_sigma_cs = np.array([0.5, start_cs])
     condition = np.all(
-        data["observations"] == np.concatenate([np.array([0.5]), np.zeros(81)]), axis=1
+        data["observations"] == np.concatenate([start_sigma_cs, np.zeros(81)]), axis=1
     )
     indices = np.where(condition)[0]
 
@@ -76,8 +78,8 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_SS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
-        max_episode_steps=int(max_eps_steps),
+        CMA_ES_CS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
+        max_episode_steps=max_eps_steps,
     )
 
     print("Collecting expert samples...")
@@ -88,7 +90,10 @@ def run(
         sigma=sigma,
         bbob_functions=train_funcs,
     )
-    transitions = create_Transitions(expert_samples)
+
+    transitions = create_Transitions(
+        data=expert_samples, start_cs=CMAESParameters(dimension).cs
+    )
 
     bc_trainer = bc.BC(
         observation_space=train_env.observation_space,
@@ -102,12 +107,14 @@ def run(
 
     print("Continue training the agent with PPO...")
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
+
     if os.path.exists(
-        f"Environments/Step_Size/Policies/ppo_policy_ss_imit_{dimension}D_{instance}I.pkl"
+        f"Environments/Decay_Rate/Policies/ppo_policy_cs_imit_{dimension}D_{instance}I.pkl"
     ):
+        print("Loading the pre-trained policy...")
         ppo_model.policy = pickle.load(
             open(
-                f"Environments/Step_Size/Policies/ppo_policy_ss_imit_{dimension}D_{instance}I.pkl",
+                f"Environments/Decay_Rate/Policies/ppo_policy_cs_imit_{dimension}D_{instance}I.pkl",
                 "rb",
             )
         )
@@ -120,7 +127,7 @@ def run(
         pickle.dump(
             ppo_model.policy,
             open(
-                f"Environments/Step_Size/Policies/ppo_policy_ss_imit_{dimension}D_{instance}I.pkl",
+                f"Environments/Decay_Rate/Policies/ppo_policy_cs_imit_{dimension}D_{instance}I.pkl",
                 "wb",
             ),
         )
@@ -131,7 +138,7 @@ def run(
         x_start=x_start,
         sigma=sigma,
         ppo_model=ppo_model,
-        env_name="step_size",
+        env_name="decay_rate",
     )
     g_utils.print_pretty_table(
         results=results,
