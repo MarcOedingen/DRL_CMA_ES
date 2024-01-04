@@ -87,7 +87,9 @@ def run(
         sigma=sigma,
         bbob_functions=train_funcs,
     )
-    transitions = create_Transitions(data=expert_samples, n_train_funcs=len(train_funcs))
+    transitions = create_Transitions(
+        data=expert_samples, n_train_funcs=len(train_funcs)
+    )
 
     bc_trainer = bc.BC(
         observation_space=train_env.observation_space,

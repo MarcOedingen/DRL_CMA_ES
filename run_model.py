@@ -19,9 +19,13 @@ def get_path(dimension, instance, policy):
 
 def get_env(functions, x_start, sigma, policy):
     if "_ss_" in policy:
-        return "step_size", CMA_ES_SS(objective_funcs=functions, x_start=x_start, sigma=sigma)
+        return "step_size", CMA_ES_SS(
+            objective_funcs=functions, x_start=x_start, sigma=sigma
+        )
     elif "_cs_" in policy:
-        return "decay_rate", CMA_ES_CS(objective_funcs=functions, x_start=x_start, sigma=sigma)
+        return "decay_rate", CMA_ES_CS(
+            objective_funcs=functions, x_start=x_start, sigma=sigma
+        )
     else:
         raise NotImplementedError
 
@@ -53,7 +57,7 @@ def run(dimension, x_start, sigma, instance, policy):
         verbose=0,
     )
     with open(
-            get_path(dimension=dimension, instance=instance, policy=policy), "rb"
+        get_path(dimension=dimension, instance=instance, policy=policy), "rb"
     ) as f:
         ppo_model.policy = pickle.load(f)
 
