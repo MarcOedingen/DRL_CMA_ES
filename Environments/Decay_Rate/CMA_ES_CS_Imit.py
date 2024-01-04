@@ -56,7 +56,7 @@ def run(
     dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
 ):
     print(
-        "---------------Running imitation learning for step-size adaptation---------------"
+        "---------------Running imitation learning for decay-rate (cs) adaptation---------------"
     )
     func_dimensions = (
         np.repeat(dimension, 24) if dimension > 1 else np.random.randint(2, 40, 24)
@@ -101,7 +101,7 @@ def run(
     )
 
     print("Training the agent with expert samples...")
-    bc_trainer.train(n_epochs=5)
+    bc_trainer.train(n_epochs=1)
 
     print("Continue training the agent with PPO...")
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
