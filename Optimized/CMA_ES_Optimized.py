@@ -20,7 +20,7 @@ def run(dimension, x_start, sigma, instance):
     func_ids = []
     for i in tqdm(range(1, 25)):
         function = BenchmarkFunction(
-            "bbob", i, func_dimensions[i - 1], func_instances[i - 1]
+            "bbob", i, int(func_dimensions[i - 1]), int(func_instances[i - 1])
         )
         func_ids.append(function.id)
         _x_start = (
