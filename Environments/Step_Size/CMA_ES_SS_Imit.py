@@ -99,7 +99,7 @@ def run(
     )
 
     print("Training the agent with expert samples...")
-    bc_trainer.train(n_epochs=5)
+    bc_trainer.train(n_epochs=2)
 
     print("Continue training the agent with PPO...")
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)

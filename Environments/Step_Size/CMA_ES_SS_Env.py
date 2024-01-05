@@ -20,10 +20,10 @@ class CMA_ES_SS(gymnasium.Env):
         self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
 
         self.action_space = gymnasium.spaces.Box(
-            low=1e-15, high=1, shape=(1,), dtype=np.float64
+            low=1e-30, high=1, shape=(1,), dtype=np.float64
         )
         self.observation_space = gymnasium.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(2 + 2 * self.h,), dtype=np.float64
+            low=-np.inf, high=np.inf, shape=(3 + 2 * self.h,), dtype=np.float64
         )
 
         self.iteration = 0
@@ -33,8 +33,8 @@ class CMA_ES_SS(gymnasium.Env):
         self._last_achieved = 0
 
     def step(self, action):
-        self.curr_sigma = action[0]
-        self.cma_es.sigma = self.curr_sigma
+        new_sigma = action[0]
+        #self.cma_es.sigma = new_sigma  Maybe pull this back to the bottom of the function to mimic the behaviour of the baseline implementation
 
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
@@ -55,25 +55,31 @@ class CMA_ES_SS(gymnasium.Env):
 
         # Update history
         if self.iteration > 0:
-            difference = np.clip(
-                np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])),
-                -self._f_limit,
-                self._f_limit,
+            difference = (
+                    np.clip(
+                        np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])),
+                        -self._f_limit,
+                        self._f_limit,
+                    )
+                    / reward
             )
-            self.hist_fit_vals.append(difference / reward)
+            self.hist_fit_vals.append(difference)
             self.hist_sigmas.append(self.curr_sigma)
 
         new_state = np.concatenate(
             [
-                np.array([self.curr_sigma]),
+                np.array([new_sigma]),
+                np.array([np.exp(self.cma_es.params.cs / self.cma_es.params.damps)]),
                 np.array([np.linalg.norm(new_ps) / self.cma_es.params.chiN - 1]),
                 np.array(self.hist_fit_vals),
                 np.array(self.hist_sigmas),
             ]
         )
 
-        # Update current ps
+        # Update current variaables
         self.curr_ps = new_ps
+        self.curr_sigma = new_sigma
+        self.cma_es.sigma = new_sigma
 
         # Update current index
         if truncated:
@@ -120,6 +126,7 @@ class CMA_ES_SS(gymnasium.Env):
             np.concatenate(
                 [
                     np.array([self.curr_sigma]),
+                    np.array([np.exp(self.cma_es.params.cs / self.cma_es.params.damps)]),
                     np.array([self.curr_ps]),
                     list(self.hist_fit_vals),
                     list(self.hist_sigmas),
