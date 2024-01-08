@@ -9,6 +9,8 @@ from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
+from Environments.Learning_Rate.CMA_ES_C1_Env import CMA_ES_C1
+
 from stable_baselines3.common.callbacks import BaseCallback
 
 
@@ -87,6 +89,8 @@ def get_env(env_name, test_func, x_start, sigma):
         env = CMA_ES_CC(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     elif env_name == "damping":
         env = CMA_ES_DP(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+    elif env_name == "learning_rate_c1":
+        env = CMA_ES_C1(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:
         raise NotImplementedError
     return TimeLimit(env, max_episode_steps=int(1e3 * 40 ** 2))
@@ -114,7 +118,7 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
             obs, _ = eval_env.reset(verbose=0)
             terminated, truncated = False, False
             while not (terminated or truncated):
-                action, _states = ppo_model.predict(obs, deterministic=True)
+                action, _states = ppo_model.predict(obs, deterministic=False)
                 obs, reward, terminated, truncated, info = eval_env.step(action)
             grp_rewards[reward_index] = abs(-reward - test_funcs[index].best_value())
             reward_index += 1
