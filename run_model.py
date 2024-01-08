@@ -8,7 +8,7 @@ from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
 from Environments.Learning_Rate.CMA_ES_C1_Env import CMA_ES_C1
-
+from Environments.Learning_Rate.CMA_ES_CM_Env import CMA_ES_CM
 
 def get_path(dimension, instance, policy):
     if "_ss" in policy:
@@ -17,7 +17,7 @@ def get_path(dimension, instance, policy):
         path = "Environments/Decay_Rate/Policies/"
     elif "_dp" in policy:
         path = "Environments/Damping/Policies/"
-    elif "_c1" in policy:
+    elif "_c1" in policy or "_cm" in policy:
         path = "Environments/Learning_Rate/Policies/"
     else:
         raise NotImplementedError
@@ -43,6 +43,10 @@ def get_env(functions, x_start, sigma, policy):
         )
     elif "_c1" in policy:
         return "learning_rate_c1", CMA_ES_C1(
+            objective_funcs=functions, x_start=x_start, sigma=sigma
+        )
+    elif "_cm" in policy:
+        return "learning_rate_cm", CMA_ES_CM(
             objective_funcs=functions, x_start=x_start, sigma=sigma
         )
     else:
