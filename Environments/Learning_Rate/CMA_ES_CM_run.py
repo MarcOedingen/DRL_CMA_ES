@@ -6,6 +6,7 @@ from stable_baselines3 import PPO
 from gymnasium.wrappers import TimeLimit
 from Environments.Learning_Rate.CMA_ES_CM_Env import CMA_ES_CM
 
+
 def run(
     dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
 ):
@@ -35,7 +36,7 @@ def run(
 
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
     if os.path.exists(
-            f"Environments/Learning_Rate/Policies/ppo_policy_cm_{dimension}D_{instance}I.pkl"
+        f"Environments/Learning_Rate/Policies/ppo_policy_cm_{dimension}D_{instance}I.pkl"
     ):
         ppo_model.policy = pickle.load(
             open(

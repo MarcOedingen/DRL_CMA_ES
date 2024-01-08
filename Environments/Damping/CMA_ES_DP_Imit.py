@@ -65,7 +65,7 @@ def run(
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
 
     if os.path.exists(
-            f"Environments/Damping/Policies/ppo_policy_dp_imit_{dimension}D_{instance}I.pkl"
+        f"Environments/Damping/Policies/ppo_policy_dp_imit_{dimension}D_{instance}I.pkl"
     ):
         print("Loading the pre-trained policy...")
         ppo_model.policy = pickle.load(
@@ -101,4 +101,3 @@ def run(
     )
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
-

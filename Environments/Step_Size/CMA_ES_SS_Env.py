@@ -55,12 +55,12 @@ class CMA_ES_SS(gymnasium.Env):
         # Update history
         if self.iteration > 0:
             difference = (
-                    np.clip(
-                        np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])),
-                        -self._f_limit,
-                        self._f_limit,
-                    )
-                    / reward
+                np.clip(
+                    np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])),
+                    -self._f_limit,
+                    self._f_limit,
+                )
+                / reward
             )
             self.hist_fit_vals.append(difference)
             self.hist_sigmas.append(self.curr_sigma)

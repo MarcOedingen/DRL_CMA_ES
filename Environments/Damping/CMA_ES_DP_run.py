@@ -10,9 +10,7 @@ from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 def run(
     dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
 ):
-    print(
-        "---------------Running learning for damping (dp) adaptation---------------"
-    )
+    print("---------------Running learning for damping (dp) adaptation---------------")
     func_dimensions = (
         np.repeat(dimension, 24) if dimension > 1 else np.random.randint(2, 40, 24)
     )
@@ -62,10 +60,8 @@ def run(
         x_start=x_start,
         sigma=sigma,
         ppo_model=ppo_model,
-        env_name="damping"
+        env_name="damping",
     )
-    g_utils.print_pretty_table(
-        results=results
-    )
+    g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")

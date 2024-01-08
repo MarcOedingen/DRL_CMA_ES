@@ -19,12 +19,12 @@ def run_CMAES_CM(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
         reward = np.clip(-np.mean(fit), -f_limit, f_limit)
         if iteration > 0:
             difference = (
-                    np.clip(
-                        np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])),
-                        -f_limit,
-                        f_limit,
-                    )
-                    / reward
+                np.clip(
+                    np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])),
+                    -f_limit,
+                    f_limit,
+                )
+                / reward
             )
             hist_fit_vals.append(difference)
             hist_cm.append(es.params.cmu)
@@ -47,7 +47,7 @@ def run_CMAES_CM(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
 
 def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
     if os.path.isfile(
-            f"Environments/Learning_Rate/Samples/CMA_ES_CM_Samples_{dimension}D_{instance}I.npz"
+        f"Environments/Learning_Rate/Samples/CMA_ES_CM_Samples_{dimension}D_{instance}I.npz"
     ):
         data = np.load(
             f"Environments/Learning_Rate/Samples/CMA_ES_CM_Samples_{dimension}D_{instance}I.npz"
@@ -83,7 +83,7 @@ class CMAES_CM:
     def __init__(self, x_start, sigma):
         N = len(x_start)
         self.params = CMAESParameters(N)
-        self.max_f_evals = 1e3 * N ** 2
+        self.max_f_evals = 1e3 * N**2
 
         self.x_mean = x_start
         self.sigma = sigma
@@ -117,7 +117,7 @@ class CMAES_CM:
         self.fit_vals = np.sort(fit_vals)
 
         self.x_mean = np.sum(
-            arx[0:self.params.mu] * self.params.weights[: self.params.mu, None],
+            arx[0 : self.params.mu] * self.params.weights[: self.params.mu, None],
             axis=0,
         )
 
@@ -133,15 +133,15 @@ class CMAES_CM:
         ) * (self.x_mean - x_old) / self.sigma
 
         # Adapt covariance matrix C
-        ar_temp = (arx[0: self.params.mu] - x_old) / self.sigma
+        ar_temp = (arx[0 : self.params.mu] - x_old) / self.sigma
         self.C = (
-                (1 - self.params.c1 - self.params.cmu) * self.C
-                + self.params.c1
-                * (
-                        np.outer(self.pc, self.pc)
-                        + (1 - h_sig) * self.params.cc * (2 - self.params.cc) * self.C
-                )
-                + self.params.cmu * ar_temp.T.dot(np.diag(self.params.weights)).dot(ar_temp)
+            (1 - self.params.c1 - self.params.cmu) * self.C
+            + self.params.c1
+            * (
+                np.outer(self.pc, self.pc)
+                + (1 - h_sig) * self.params.cc * (2 - self.params.cc) * self.C
+            )
+            + self.params.cmu * ar_temp.T.dot(np.diag(self.params.weights)).dot(ar_temp)
         )
 
         # Adapt step-size sigma

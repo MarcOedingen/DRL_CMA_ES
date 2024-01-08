@@ -10,6 +10,7 @@ from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
 from Environments.Learning_Rate.CMA_ES_C1_Env import CMA_ES_C1
 from Environments.Learning_Rate.CMA_ES_CM_Env import CMA_ES_CM
 
+
 def get_path(dimension, instance, policy):
     if "_ss" in policy:
         path = "Environments/Step_Size/Policies/"

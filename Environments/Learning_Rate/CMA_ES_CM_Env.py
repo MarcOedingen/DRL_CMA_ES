@@ -65,7 +65,13 @@ class CMA_ES_CM(gymnasium.Env):
         new_state = np.concatenate(
             [
                 np.array([new_cm]),
-                np.array([self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension]),
+                np.array(
+                    [
+                        self.objetive_funcs[
+                            self.curr_index % len(self.objetive_funcs)
+                        ].dimension
+                    ]
+                ),
                 np.array(self.hist_fit_vals),
                 np.array(self.hist_cm),
             ]
@@ -117,7 +123,13 @@ class CMA_ES_CM(gymnasium.Env):
             np.concatenate(
                 [
                     np.array([self.curr_cm]),
-                    np.array([self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension]),
+                    np.array(
+                        [
+                            self.objetive_funcs[
+                                self.curr_index % len(self.objetive_funcs)
+                            ].dimension
+                        ]
+                    ),
                     np.array(self.hist_fit_vals),
                     np.array(self.hist_cm),
                 ]
