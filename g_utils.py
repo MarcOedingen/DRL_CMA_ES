@@ -2,13 +2,13 @@ import numpy as np
 from tqdm import tqdm
 from prettytable import PrettyTable
 from gymnasium.wrappers import TimeLimit
+from imitation.data.types import Transitions
 from cocoex.function import BenchmarkFunction
 from sklearn.model_selection import train_test_split
 from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
-
 from stable_baselines3.common.callbacks import BaseCallback
 
 
@@ -34,13 +34,13 @@ def create_benchmark_functions(ids, dimensions, instances):
 
 
 def split_train_test_functions(
-    dimensions,
-    instances,
-    n_functions=24,
-    test_size=0.25,
-    train_repeats=10,
-    test_repeats=10,
-    random_state=42,
+        dimensions,
+        instances,
+        n_functions=24,
+        test_size=0.25,
+        train_repeats=10,
+        test_repeats=10,
+        random_state=42,
 ):
     train_ids, test_ids = train_test_split(
         np.arange(1, n_functions + 1), test_size=test_size, random_state=random_state
@@ -89,7 +89,7 @@ def get_env(env_name, test_func, x_start, sigma):
         env = CMA_ES_DP(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:
         raise NotImplementedError
-    return TimeLimit(env, max_episode_steps=int(1e3 * 40**2))
+    return TimeLimit(env, max_episode_steps=int(1e3 * 40 ** 2))
 
 
 def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
@@ -173,3 +173,37 @@ def print_pretty_table(results):
             ]
         )
     print(table)
+
+
+def create_Transitions(data, n_train_funcs):
+    shifted_dones = np.roll(np.where(data["dones"])[0], 1)
+    shifted_dones[0] = 0
+    indices = shifted_dones + np.concatenate(([0], np.arange(2, n_train_funcs + 1)))
+
+    if len(indices) > 0:
+        indices = np.concatenate((indices[1:], [len(data["observations"])]))
+    else:
+        indices = np.array([len(data["observations"])])
+
+    starts = np.zeros(len(indices), dtype=int)
+    ends = np.copy(indices) - 1
+
+    starts[1:] = indices[:-1]
+    full_range = np.arange(data["observations"].shape[0])
+
+    valid_obs_mask = (full_range[:, None] >= starts) & (full_range[:, None] < ends)
+    valid_next_obs_mask = (full_range[:, None] > starts) & (full_range[:, None] <= ends)
+
+    obs_indices = full_range[np.any(valid_obs_mask, axis=1)]
+    next_obs_indices = full_range[np.any(valid_next_obs_mask, axis=1)]
+
+    obs = data["observations"][obs_indices]
+    next_obs = data["observations"][next_obs_indices]
+
+    return Transitions(
+        obs=obs,
+        next_obs=next_obs,
+        acts=data["actions"],
+        dones=data["dones"],
+        infos=np.array([{}] * len(obs)),
+    )

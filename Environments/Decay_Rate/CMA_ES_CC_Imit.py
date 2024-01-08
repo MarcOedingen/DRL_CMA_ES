@@ -5,51 +5,8 @@ import numpy as np
 from stable_baselines3 import PPO
 from imitation.algorithms import bc
 from gymnasium.wrappers import TimeLimit
-from imitation.data.types import Transitions
 from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
 from Environments.Decay_Rate.CMA_ES_CC import collect_expert_samples
-
-
-def create_Transitions(data, n_train_funcs):
-    shifted_dones = np.roll(np.where(data["dones"])[0], 1)
-    shifted_dones[0] = 0
-    indices = shifted_dones + np.concatenate(([0], np.arange(2, n_train_funcs + 1)))
-
-    # Adjust the indices array
-    if len(indices) > 0:
-        indices = np.concatenate((indices[1:], [len(data["observations"])]))
-    else:
-        indices = np.array([len(data["observations"])])
-
-    # Calculate start and end indices for each segment
-    starts = np.zeros(len(indices), dtype=int)
-    ends = np.copy(indices) - 1
-
-    # For starts, shift indices array by one position
-    starts[1:] = indices[:-1]
-
-    # Create the full range of indices
-    full_range = np.arange(data["observations"].shape[0])
-
-    # Generate masks for valid indices
-    valid_obs_mask = (full_range[:, None] >= starts) & (full_range[:, None] < ends)
-    valid_next_obs_mask = (full_range[:, None] > starts) & (full_range[:, None] <= ends)
-
-    # Extract valid indices for obs and next_obs
-    obs_indices = full_range[np.any(valid_obs_mask, axis=1)]
-    next_obs_indices = full_range[np.any(valid_next_obs_mask, axis=1)]
-
-    # Use advanced indexing to get obs and next_obs
-    obs = data["observations"][obs_indices]
-    next_obs = data["observations"][next_obs_indices]
-
-    return Transitions(
-        obs=obs,
-        next_obs=next_obs,
-        acts=data["actions"],
-        dones=data["dones"],
-        infos=np.array([{}] * len(obs)),
-    )
 
 
 def run(
@@ -88,7 +45,7 @@ def run(
         bbob_functions=train_funcs,
     )
 
-    transitions = create_Transitions(
+    transitions = g_utils.create_Transitions(
         data=expert_samples,
         n_train_funcs=len(train_funcs),
     )
