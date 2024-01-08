@@ -10,7 +10,7 @@ from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 def get_path(dimension, instance, policy):
     if "_ss_" in policy:
         path = "Environments/Step_Size/Policies/"
-    elif "_cs_" in policy:
+    elif "_cs" in policy:
         path = "Environments/Decay_Rate/Policies/"
     else:
         raise NotImplementedError
@@ -22,7 +22,7 @@ def get_env(functions, x_start, sigma, policy):
         return "step_size", CMA_ES_SS(
             objective_funcs=functions, x_start=x_start, sigma=sigma
         )
-    elif "_cs_" in policy:
+    elif "_cs" in policy:
         return "decay_rate", CMA_ES_CS(
             objective_funcs=functions, x_start=x_start, sigma=sigma
         )

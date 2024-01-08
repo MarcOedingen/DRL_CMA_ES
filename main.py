@@ -38,14 +38,14 @@ def main():
         type=int,
         help="The instance of the problem",
         choices=[i for i in range(-1, int(1e3) + 1) if i != 0],
-        default=1,
+        default=5,
     )
 
     parser.add_argument(
         "--policy",
         type=str,
         help="The model to use",
-        choices=["ppo_policy_ss", "ppo_policy_ss_imit"],
+        choices=["ppo_policy_ss", "ppo_policy_ss_imit", "ppo_policy_cs", "ppo_policy_cs_imit"],
         default="ppo_policy_ss",
     )
 

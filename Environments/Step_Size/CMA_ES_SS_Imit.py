@@ -53,7 +53,7 @@ def create_Transitions(data, n_train_funcs):
 
 
 def run(
-    dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
+        dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
 ):
     print(
         "---------------Running imitation learning for step-size adaptation---------------"
@@ -79,16 +79,17 @@ def run(
         max_episode_steps=int(max_eps_steps),
     )
 
+    expert_functions = train_funcs[:int(len(train_funcs) * 0.1)]
     print("Collecting expert samples...")
     expert_samples = collect_expert_samples(
         dimension=dimension,
         instance=instance,
         x_start=x_start,
         sigma=sigma,
-        bbob_functions=train_funcs,
+        bbob_functions=expert_functions,
     )
     transitions = create_Transitions(
-        data=expert_samples, n_train_funcs=len(train_funcs)
+        data=expert_samples, n_train_funcs=len(expert_functions)
     )
 
     bc_trainer = bc.BC(
@@ -104,7 +105,7 @@ def run(
     print("Continue training the agent with PPO...")
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
     if os.path.exists(
-        f"Environments/Step_Size/Policies/ppo_policy_ss_imit_{dimension}D_{instance}I.pkl"
+            f"Environments/Step_Size/Policies/ppo_policy_ss_imit_{dimension}D_{instance}I.pkl"
     ):
         ppo_model.policy = pickle.load(
             open(

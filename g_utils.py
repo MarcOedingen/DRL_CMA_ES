@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 from prettytable import PrettyTable
 from gymnasium.wrappers import TimeLimit
 from cocoex.function import BenchmarkFunction
@@ -94,7 +95,7 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
         groups[key].append(index)
 
     results = []
-    for key, indices in groups.items():
+    for key, indices in tqdm(groups.items()):
         grp_rewards = np.zeros(len(indices))
         reward_index = 0
         for index in indices:

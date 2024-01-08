@@ -20,10 +20,10 @@ class CMA_ES_SS(gymnasium.Env):
         self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
 
         self.action_space = gymnasium.spaces.Box(
-            low=1e-30, high=1, shape=(1,), dtype=np.float64
+            low=1e-15, high=3, shape=(1,), dtype=np.float64
         )
         self.observation_space = gymnasium.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(3 + 2 * self.h,), dtype=np.float64
+            low=-np.inf, high=np.inf, shape=(2 + 2 * self.h,), dtype=np.float64
         )
 
         self.iteration = 0
@@ -34,7 +34,6 @@ class CMA_ES_SS(gymnasium.Env):
 
     def step(self, action):
         new_sigma = action[0]
-        #self.cma_es.sigma = new_sigma  Maybe pull this back to the bottom of the function to mimic the behaviour of the baseline implementation
 
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
@@ -69,14 +68,13 @@ class CMA_ES_SS(gymnasium.Env):
         new_state = np.concatenate(
             [
                 np.array([new_sigma]),
-                np.array([np.exp(self.cma_es.params.cs / self.cma_es.params.damps)]),
                 np.array([np.linalg.norm(new_ps) / self.cma_es.params.chiN - 1]),
                 np.array(self.hist_fit_vals),
                 np.array(self.hist_sigmas),
             ]
         )
 
-        # Update current variaables
+        # Update current variables
         self.curr_ps = new_ps
         self.curr_sigma = new_sigma
         self.cma_es.sigma = new_sigma
@@ -126,7 +124,6 @@ class CMA_ES_SS(gymnasium.Env):
             np.concatenate(
                 [
                     np.array([self.curr_sigma]),
-                    np.array([np.exp(self.cma_es.params.cs / self.cma_es.params.damps)]),
                     np.array([self.curr_ps]),
                     list(self.hist_fit_vals),
                     list(self.hist_sigmas),
