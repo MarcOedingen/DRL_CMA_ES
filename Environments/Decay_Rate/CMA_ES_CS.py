@@ -8,7 +8,7 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 def run_CMAES_CS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_CS(x_start, sigma)
     start_sigma_cs = np.array([sigma, es.params.cs])
-    observations, actions, dones = [np.hstack((start_sigma_cs, np.zeros(81)))], [], []
+    observations, actions, dones = [np.hstack((start_sigma_cs, np.zeros(82)))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
     hist_cs = deque(np.zeros(h), maxlen=h)
     iteration = 0
@@ -35,6 +35,7 @@ def run_CMAES_CS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                     np.array([new_sigma]),
                     np.array([es.params.cs]),
                     np.array([np.linalg.norm(new_ps) / es.params.chiN - 1]),
+                    np.array([objective_fct.dimension]),
                     np.array(hist_fit_vals),
                     np.array(hist_cs),
                 ]

@@ -24,7 +24,7 @@ class CMA_ES_CS(gymnasium.Env):
             low=1e-10, high=1, shape=(1,), dtype=np.float64
         )
         self.observation_space = gymnasium.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(3 + 2 * self.h,), dtype=np.float64
+            low=-np.inf, high=np.inf, shape=(4 + 2 * self.h,), dtype=np.float64
         )
 
         self.iteration = 0
@@ -69,6 +69,7 @@ class CMA_ES_CS(gymnasium.Env):
                 np.array([self.curr_sigma]),
                 np.array([new_cs]),
                 np.array([np.linalg.norm(self.curr_ps) / self.cma_es.params.chiN - 1]),
+                np.array([self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension]),
                 np.array(self.hist_fit_vals),
                 np.array(self.hist_cs),
             ]
@@ -124,6 +125,7 @@ class CMA_ES_CS(gymnasium.Env):
                     np.array([self.curr_sigma]),
                     np.array([self.curr_cs]),
                     np.array([self.curr_ps]),
+                    np.array([self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension]),
                     np.array(self.hist_fit_vals),
                     np.array(self.hist_cs),
                 ]
