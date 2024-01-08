@@ -6,12 +6,13 @@ from cocoex.function import BenchmarkFunction
 from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
+from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
 
 
 def get_path(dimension, instance, policy):
     if "_ss" in policy:
         path = "Environments/Step_Size/Policies/"
-    elif "_cs" in policy:
+    elif "_cs" in policy or "_cc" in policy:
         path = "Environments/Decay_Rate/Policies/"
     elif "_dp" in policy:
         path = "Environments/Damping/Policies/"
@@ -26,7 +27,11 @@ def get_env(functions, x_start, sigma, policy):
             objective_funcs=functions, x_start=x_start, sigma=sigma
         )
     elif "_cs" in policy:
-        return "decay_rate", CMA_ES_CS(
+        return "decay_rate_cs", CMA_ES_CS(
+            objective_funcs=functions, x_start=x_start, sigma=sigma
+        )
+    elif "_cc" in policy:
+        return "decay_rate_cc", CMA_ES_CC(
             objective_funcs=functions, x_start=x_start, sigma=sigma
         )
     elif "_dp" in policy:

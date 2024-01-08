@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
+from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
 
 from stable_baselines3.common.callbacks import BaseCallback
 
@@ -80,8 +81,10 @@ def split_train_test_functions(
 def get_env(env_name, test_func, x_start, sigma):
     if env_name == "step_size":
         env = CMA_ES_SS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
-    elif env_name == "decay_rate":
+    elif env_name == "decay_rate_cs":
         env = CMA_ES_CS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+    elif env_name == "decay_rate_cc":
+        env = CMA_ES_CC(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     elif env_name == "damping":
         env = CMA_ES_DP(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:

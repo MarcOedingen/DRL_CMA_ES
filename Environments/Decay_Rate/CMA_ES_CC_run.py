@@ -4,14 +4,13 @@ import g_utils
 import numpy as np
 from stable_baselines3 import PPO
 from gymnasium.wrappers import TimeLimit
-from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
-
+from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
 
 def run(
     dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
 ):
     print(
-        "---------------Running learning for decay-rate (cs) adaptation---------------"
+        "---------------Running learning for decay-rate (cc) adaptation---------------"
     )
     func_dimensions = (
         np.repeat(dimension, 24) if dimension > 1 else np.random.randint(2, 40, 24)
@@ -30,16 +29,17 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_CS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
+        CMA_ES_CC(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
         max_episode_steps=int(max_eps_steps),
     )
+
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
     if os.path.exists(
-        f"Environments/Decay_Rate/Policies/ppo_policy_cs_{dimension}D_{instance}I.pkl"
+            f"Environments/Decay_Rate/Policies/ppo_policy_cc_{dimension}D_{instance}I.pkl"
     ):
         ppo_model.policy = pickle.load(
             open(
-                f"Environments/Decay_Rate/Policies/ppo_policy_cs_{dimension}D_{instance}I.pkl",
+                f"Environments/Decay_Rate/Policies/ppo_policy_cc_{dimension}D_{instance}I.pkl",
                 "rb",
             )
         )
@@ -51,7 +51,7 @@ def run(
         pickle.dump(
             ppo_model.policy,
             open(
-                f"Environments/Decay_Rate/Policies/ppo_policy_cs_{dimension}D_{instance}I.pkl",
+                f"Environments/Decay_Rate/Policies/ppo_policy_cc_{dimension}D_{instance}I.pkl",
                 "wb",
             ),
         )
@@ -62,7 +62,7 @@ def run(
         x_start=x_start,
         sigma=sigma,
         ppo_model=ppo_model,
-        env_name="decay_rate_cs",
+        env_name="decay_rate_cc",
     )
     g_utils.print_pretty_table(
         results=results,

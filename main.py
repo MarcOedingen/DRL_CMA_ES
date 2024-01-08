@@ -14,18 +14,20 @@ def main():
             "step_size_imit",
             "decay_rate_cs",
             "decay_rate_cs_imit",
+            "decay_rate_cc",
+            "decay_rate_cc_imit",
             "damping",
             "damping_imit",
             "testing",
         ],
-        default="step_size_imit",
+        default="decay_rate_cc_imit",
     )
     parser.add_argument(
         "--dimension",
         type=int,
         help="The dimension of the problem",
         choices=[i for i in range(-1, 41) if i != 0 and i != 1],
-        default=10,
+        default=2,
     )
     parser.add_argument(
         "--x_start",
@@ -40,7 +42,7 @@ def main():
         type=int,
         help="The instance of the problem",
         choices=[i for i in range(-1, int(1e3) + 1) if i != 0],
-        default=5,
+        default=1,
     )
 
     parser.add_argument(
@@ -52,6 +54,8 @@ def main():
             "ppo_policy_ss_imit",
             "ppo_policy_cs",
             "ppo_policy_cs_imit",
+            "ppo_policy_cc",
+            "ppo_policy_cc_imit",
             "ppo_policy_dp",
             "ppo_policy_dp_imit",
         ],
@@ -131,6 +135,32 @@ def main():
 
     elif args.algorithm == "decay_rate_cs_imit":
         from Environments.Decay_Rate.CMA_ES_CS_Imit import run
+
+        run(
+            args.dimension,
+            args.x_start,
+            args.sigma,
+            args.instance,
+            args.max_episode_steps,
+            args.train_repeats,
+            args.test_repeats,
+        )
+
+    elif args.algorithm == "decay_rate_cc":
+        from Environments.Decay_Rate.CMA_ES_CC_run import run
+
+        run(
+            args.dimension,
+            args.x_start,
+            args.sigma,
+            args.instance,
+            args.max_episode_steps,
+            args.train_repeats,
+            args.test_repeats,
+        )
+
+    elif args.algorithm == "decay_rate_cc_imit":
+        from Environments.Decay_Rate.CMA_ES_CC_Imit import run
 
         run(
             args.dimension,
