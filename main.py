@@ -31,6 +31,11 @@ def main():
         module = importlib.import_module("run_model")
         run_function = getattr(module, "run")
         run_function(args.dimension, args.x_start, args.sigma, args.instance, args.policy)
+    elif args.algorithm == "baseline" or args.algorithm == "optimized":
+        module_path, function_name = get_module_and_function(args.algorithm)
+        module = importlib.import_module(module_path)
+        run_function = getattr(module, function_name)
+        run_function(args.dimension, args.x_start, args.sigma, args.instance)
     else:
         module_path, function_name = get_module_and_function(args.algorithm)
         module = importlib.import_module(module_path)
@@ -43,13 +48,13 @@ def get_module_and_function(algorithm):
         "baseline": ("Baseline.CMA_ES_Baseline", "run"),
         "optimized": ("Optimized.CMA_ES_Optimized", "run"),
         "step_size": ("Environments.Step_Size.CMA_ES_SS_run", "run"),
-        "step_size_imit": ("Environments.Step_Size.CMA_ES_SS_imit_run", "run"),
+        "step_size_imit": ("Environments.Step_Size.CMA_ES_SS_Imit", "run"),
         "decay_rate_cs": ("Environments.Decay_Rate.CMA_ES_CS_run", "run"),
-        "decay_rate_cs_imit": ("Environments.Decay_Rate.CMA_ES_CS_imit_run", "run"),
+        "decay_rate_cs_imit": ("Environments.Decay_Rate.CMA_ES_CS_Imit", "run"),
         "decay_rate_cc": ("Environments.Decay_Rate.CMA_ES_CC_run", "run"),
-        "decay_rate_cc_imit": ("Environments.Decay_Rate.CMA_ES_CC_imit_run", "run"),
+        "decay_rate_cc_imit": ("Environments.Decay_Rate.CMA_ES_CC_Imit", "run"),
         "damping": ("Environments.Damping.CMA_ES_Damping_run", "run"),
-        "damping_imit": ("Environments.Damping.CMA_ES_Damping_imit_run", "run")
+        "damping_imit": ("Environments.Damping.CMA_ES_Damping_Imit", "run")
     }
     return mapping.get(algorithm, ("", ""))
 
