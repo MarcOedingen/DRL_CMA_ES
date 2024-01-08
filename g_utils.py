@@ -4,6 +4,7 @@ from prettytable import PrettyTable
 from gymnasium.wrappers import TimeLimit
 from cocoex.function import BenchmarkFunction
 from sklearn.model_selection import train_test_split
+from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 
@@ -81,6 +82,8 @@ def get_env(env_name, test_func, x_start, sigma):
         env = CMA_ES_SS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     elif env_name == "decay_rate":
         env = CMA_ES_CS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+    elif env_name == "damping":
+        env = CMA_ES_DP(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:
         raise NotImplementedError
     return TimeLimit(env, max_episode_steps=int(1e3 * 40**2))

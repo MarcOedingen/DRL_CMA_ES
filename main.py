@@ -14,6 +14,8 @@ def main():
             "step_size_imit",
             "decay_rate_cs",
             "decay_rate_cs_imit",
+            "damping",
+            "damping_imit",
             "testing",
         ],
         default="step_size_imit",
@@ -45,7 +47,14 @@ def main():
         "--policy",
         type=str,
         help="The model to use",
-        choices=["ppo_policy_ss", "ppo_policy_ss_imit", "ppo_policy_cs", "ppo_policy_cs_imit"],
+        choices=[
+            "ppo_policy_ss",
+            "ppo_policy_ss_imit",
+            "ppo_policy_cs",
+            "ppo_policy_cs_imit",
+            "ppo_policy_dp",
+            "ppo_policy_dp_imit",
+        ],
         default="ppo_policy_ss",
     )
 
@@ -122,6 +131,32 @@ def main():
 
     elif args.algorithm == "decay_rate_cs_imit":
         from Environments.Decay_Rate.CMA_ES_CS_Imit import run
+
+        run(
+            args.dimension,
+            args.x_start,
+            args.sigma,
+            args.instance,
+            args.max_episode_steps,
+            args.train_repeats,
+            args.test_repeats,
+        )
+
+    elif args.algorithm == "damping":
+        from Environments.Damping.CMA_ES_DP_run import run
+
+        run(
+            args.dimension,
+            args.x_start,
+            args.sigma,
+            args.instance,
+            args.max_episode_steps,
+            args.train_repeats,
+            args.test_repeats,
+        )
+
+    elif args.algorithm == "damping_imit":
+        from Environments.Damping.CMA_ES_DP_Imit import run
 
         run(
             args.dimension,
