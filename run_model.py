@@ -3,6 +3,7 @@ import g_utils
 import numpy as np
 from stable_baselines3 import PPO
 from cocoex.function import BenchmarkFunction
+from Environments.h_Sigma.CMA_ES_HS_Env import CMA_ES_HS
 from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
@@ -23,6 +24,8 @@ def get_path(dimension, instance, policy):
         path = "Environments/Learning_Rate/Policies/"
     elif "_me" in policy:
         path = "Environments/Mu_Effective/Policies/"
+    elif "_hs" in policy:
+        path = "Environments/h_Sigma/Policies/"
     else:
         raise NotImplementedError
     return path + f"{policy}_{dimension}D_{instance}I.pkl"
@@ -55,6 +58,10 @@ def get_env(functions, x_start, sigma, policy):
         )
     elif "_me" in policy:
         return "mu_effective", CMA_ES_ME(
+            objective_funcs=functions, x_start=x_start, sigma=sigma
+        )
+    elif "_hs" in policy:
+        return "h_sigma", CMA_ES_HS(
             objective_funcs=functions, x_start=x_start, sigma=sigma
         )
     else:

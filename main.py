@@ -25,6 +25,8 @@ def main():
             "learning_rate_cm_imit",
             "mu_effective",
             "mu_effective_imit",
+            "h_sigma",
+            "h_sigma_imit",
             "testing",
         ],
         default="baseline",
@@ -70,6 +72,8 @@ def main():
             "ppo_policy_cm_imit",
             "ppo_policy_me",
             "ppo_policy_me_imit",
+            "ppo_policy_hs",
+            "ppo_policy_hs_imit",
         ],
         default="ppo_policy_ss",
     )
@@ -138,6 +142,8 @@ def get_module_and_function(algorithm):
         "learning_rate_cm_imit": ("Environments.Learning_Rate.CMA_ES_CM_Imit", "run"),
         "mu_effective": ("Environments.Mu_Effective.CMA_ES_ME_run", "run"),
         "mu_effective_imit": ("Environments.Mu_Effective.CMA_ES_ME_Imit", "run"),
+        "h_sigma": ("Environments.h_Sigma.CMA_ES_HS_run", "run"),
+        "h_sigma_imit": ("Environments.h_Sigma.CMA_ES_HS_Imit", "run"),
     }
     return mapping.get(algorithm, ("", ""))
 

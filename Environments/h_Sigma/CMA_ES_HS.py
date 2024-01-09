@@ -5,17 +5,19 @@ from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
-def run_CMAES_C1(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
-    es = CMAES_C1(x_start, sigma)
-    start_state = np.array([es.params.c1, objective_fct.dimension])
-    observations, actions, dones = [np.hstack((start_state, np.zeros(80)))], [], []
+def run_CMAES_HS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
+    es = CMAES_HS(x_start, sigma)
+    start_state = np.array([np.linalg.norm(es.ps), es.count_eval, sigma, es.h_sig, objective_fct.dimension])
+    observations, actions, dones = [np.hstack((start_state, np.zeros(int(3 * h))))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
-    hist_c1 = deque(np.zeros(h), maxlen=h)
+    hist_h_sig = deque(np.zeros(h), maxlen=h)
+    hist_sigmas = deque(np.zeros(h), maxlen=h)
     iteration = 0
+    curr_sigma, curr_h_sig = sigma, es.h_sig
     while not es.stop():
         X = es.ask()
         fit = [objective_fct(x) for x in X]
-        es.tell(X, fit)
+        ps, count_eval, new_sigma, new_h_sig = es.tell(X, fit)
         reward = np.clip(-np.mean(fit), -f_limit, f_limit)
         if iteration > 0:
             difference = (
@@ -27,18 +29,20 @@ def run_CMAES_C1(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                 / reward
             )
             hist_fit_vals.append(difference)
-            hist_c1.append(es.params.c1)
+            hist_h_sig.append(curr_h_sig)
+            hist_sigmas.append(curr_sigma)
         observations.append(
             np.concatenate(
                 [
-                    np.array([es.params.c1]),
+                    np.array([np.linalg.norm(ps), count_eval, new_sigma, new_h_sig]),
                     np.array([objective_fct.dimension]),
                     np.array(hist_fit_vals),
-                    np.array(hist_c1),
+                    np.array(hist_h_sig),
+                    np.array(hist_sigmas),
                 ]
             )
         )
-        actions.append(es.params.c1)
+        actions.append(new_h_sig)
         dones.append(False)
         iteration += 1
     dones[-1] = True
@@ -47,10 +51,10 @@ def run_CMAES_C1(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
 
 def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
     if os.path.isfile(
-        f"Environments/Learning_Rate/Samples/CMA_ES_C1_Samples_{dimension}D_{instance}I.npz"
+        f"Environments/h_Sigma/Samples/CMA_ES_HS_Samples_{dimension}D_{instance}I.npz"
     ):
         data = np.load(
-            f"Environments/Learning_Rate/Samples/CMA_ES_C1_Samples_{dimension}D_{instance}I.npz"
+            f"Environments/h_Sigma/Samples/CMA_ES_HS_Samples_{dimension}D_{instance}I.npz"
         )
         return data
     observations, actions, dones = [], [], []
@@ -60,7 +64,7 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
             if x_start == 0
             else np.random.uniform(-5, 5, function.dimension)
         )
-        obs, act, done = run_CMAES_C1(
+        obs, act, done = run_CMAES_HS(
             objective_fct=function,
             x_start=_x_start,
             sigma=sigma,
@@ -69,17 +73,17 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
         actions.extend(act)
         dones.extend(done)
     np.savez(
-        f"Environments/Learning_Rate/Samples/CMA_ES_C1_Samples_{dimension}D_{instance}I.npz",
+        f"Environments/h_Sigma/Samples/CMA_ES_HS_Samples_{dimension}D_{instance}I.npz",
         observations=observations,
         actions=actions,
         dones=dones,
     )
     return np.load(
-        f"Environments/Learning_Rate/Samples/CMA_ES_C1_Samples_{dimension}D_{instance}I.npz"
+        f"Environments/h_Sigma/Samples/CMA_ES_HS_Samples_{dimension}D_{instance}I.npz"
     )
 
 
-class CMAES_C1:
+class CMAES_HS:
     def __init__(self, x_start, sigma):
         N = len(x_start)
         self.params = CMAESParameters(N)
@@ -98,6 +102,8 @@ class CMAES_C1:
         self.updated_eval = 0
         self.count_eval = 0
         self.fit_vals = np.zeros(N)
+        self.h_sig = 0
+
 
     def ask(self):
         self._update_Eigensystem()
@@ -125,10 +131,10 @@ class CMAES_C1:
         self.ps = (1 - self.params.cs) * self.ps + np.sqrt(
             self.params.cs * (2 - self.params.cs) * self.params.mueff
         ) * np.dot(self.inv_sqrt_C, (self.x_mean - x_old)) / self.sigma
-        h_sig = np.linalg.norm(self.ps) / np.sqrt(
+        expert_h_sig = np.linalg.norm(self.ps) / np.sqrt(
             1 - (1 - self.params.cs) ** (2 * self.count_eval / self.params.lam)
         ) / self.params.chiN < 1.4 + 2 / (N + 1)
-        self.pc = (1 - self.params.cc) * self.pc + h_sig * np.sqrt(
+        self.pc = (1 - self.params.cc) * self.pc + self.h_sig * np.sqrt(
             self.params.cc * (2 - self.params.cc) * self.params.mueff
         ) * (self.x_mean - x_old) / self.sigma
 
@@ -139,7 +145,7 @@ class CMAES_C1:
             + self.params.c1
             * (
                 np.outer(self.pc, self.pc)
-                + (1 - h_sig) * self.params.cc * (2 - self.params.cc) * self.C
+                + (1 - self.h_sig) * self.params.cc * (2 - self.params.cc) * self.C
             )
             + self.params.cmu * ar_temp.T.dot(np.diag(self.params.weights)).dot(ar_temp)
         )
@@ -149,6 +155,8 @@ class CMAES_C1:
             (self.params.cs / self.params.damps)
             * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
+
+        return self.ps, self.count_eval, self.sigma, expert_h_sig
 
     def stop(self):
         res = {}

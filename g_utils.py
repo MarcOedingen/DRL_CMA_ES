@@ -5,6 +5,7 @@ from gymnasium.wrappers import TimeLimit
 from imitation.data.types import Transitions
 from cocoex.function import BenchmarkFunction
 from sklearn.model_selection import train_test_split
+from Environments.h_Sigma.CMA_ES_HS_Env import CMA_ES_HS
 from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
@@ -97,6 +98,8 @@ def get_env(env_name, test_func, x_start, sigma):
         env = CMA_ES_CM(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     elif env_name == "mu_effective":
         env = CMA_ES_ME(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+    elif env_name == "h_sigma":
+        env = CMA_ES_HS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:
         raise NotImplementedError
     return TimeLimit(env, max_episode_steps=int(1e3 * 40**2))
@@ -124,7 +127,7 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
             obs, _ = eval_env.reset(verbose=0)
             terminated, truncated = False, False
             while not (terminated or truncated):
-                action, _states = ppo_model.predict(obs, deterministic=False)
+                action, _states = ppo_model.predict(obs, deterministic=True)
                 obs, reward, terminated, truncated, info = eval_env.step(action)
             grp_rewards[reward_index] = abs(-reward - test_funcs[index].best_value())
             reward_index += 1
