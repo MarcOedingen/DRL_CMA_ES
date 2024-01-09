@@ -8,7 +8,7 @@ from Environments.h_Sigma.CMA_ES_HS_Env import CMA_ES_HS
 
 
 def run(
-    dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
+    dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats, seed
 ):
     print(
         "---------------Running learning for Heaviside function (h_sigma) adaptation---------------"
@@ -27,6 +27,7 @@ def run(
         instances=func_instances,
         train_repeats=train_repeats,
         test_repeats=test_repeats,
+        random_state=seed,
     )
 
     train_env = TimeLimit(

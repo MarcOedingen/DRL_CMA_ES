@@ -10,7 +10,7 @@ from Environments.Learning_Rate.CMA_ES_C1 import collect_expert_samples
 
 
 def run(
-    dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
+    dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats, seed
 ):
     print(
         "---------------Running imitation learning for learning-rate (c1) adaptation---------------"
@@ -29,6 +29,7 @@ def run(
         instances=func_instances,
         train_repeats=train_repeats,
         test_repeats=test_repeats,
+        random_state=seed,
     )
 
     train_env = TimeLimit(

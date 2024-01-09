@@ -95,6 +95,12 @@ def main():
         help="The number of repeats for the test functions",
         default=10,
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help="The seed for the random number generator",
+        default=4567,
+    )
 
     args = parser.parse_args()
 
@@ -121,6 +127,7 @@ def main():
             args.max_episode_steps,
             args.train_repeats,
             args.test_repeats,
+            args.seed,
         )
 
 
