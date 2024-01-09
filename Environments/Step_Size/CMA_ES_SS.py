@@ -7,23 +7,18 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 
 def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_SS(x_start, sigma)
-    start_state = np.concatenate(
-        [
-            np.array([sigma]),
-            np.zeros(81),
-        ]
-    )
-    observations, actions, dones = [start_state], [], []
+    start_state = np.array([sigma, np.linalg.norm(es.ps)])
+    observations, actions, dones = [np.hstack((start_state, np.zeros(int(2*h))))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
     hist_sigmas = deque(np.zeros(h), maxlen=h)
     iteration = 0
-    cur_sigma = sigma
+    curr_sigma = sigma
     while not es.stop():
         X = es.ask()
         fit = [objective_fct(x) for x in X]
-        ps, new_sigma = es.tell(X, fit)
-        # es.sigma = new_sigma
-        reward = np.clip(-np.min(fit), -f_limit, f_limit)
+        new_sigma, ps = es.tell(X, fit)
+        es.sigma = new_sigma
+        reward = np.clip(-np.mean(fit), -f_limit, f_limit)
         if iteration > 0:
             difference = (
                 np.clip(
@@ -34,7 +29,7 @@ def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                 / reward
             )
             hist_fit_vals.append(difference)
-            hist_sigmas.append(cur_sigma)
+            hist_sigmas.append(curr_sigma)
         observations.append(
             np.concatenate(
                 [
@@ -47,7 +42,6 @@ def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
         )
         actions.append(new_sigma)
         dones.append(False)
-        cur_sigma = new_sigma
         iteration += 1
     dones[-1] = True
     return np.array(observations), np.array(actions), np.array(dones)
@@ -68,12 +62,14 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
             if x_start == 0
             else np.random.uniform(-5, 5, function.dimension)
         )
-        obs, acts, dns = run_CMAES_SS(
-            objective_fct=function, x_start=_x_start, sigma=sigma
+        obs, act, done = run_CMAES_SS(
+            objective_fct=function,
+            x_start=_x_start,
+            sigma=sigma,
         )
         observations.extend(obs)
-        actions.extend(acts)
-        dones.extend(dns)
+        actions.extend(act)
+        dones.extend(done)
     np.savez(
         f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz",
         observations=observations,
@@ -119,11 +115,9 @@ class CMAES_SS:
         N = len(self.x_mean)
         x_old = self.x_mean
 
-        # Sort by fitness and compute weighted mean into xmean
         arx = arx[np.argsort(fit_vals)]
         self.fit_vals = np.sort(fit_vals)
 
-        # Update mean
         self.x_mean = np.sum(
             arx[0 : self.params.mu] * self.params.weights[: self.params.mu, None],
             axis=0,
@@ -152,12 +146,13 @@ class CMAES_SS:
             + self.params.cmu * ar_temp.T.dot(np.diag(self.params.weights)).dot(ar_temp)
         )
 
+        # Adapt step-size sigma
         expert_sigma = self.sigma * np.exp(
             (self.params.cs / self.params.damps)
             * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
 
-        return self.ps, expert_sigma
+        return expert_sigma, self.ps
 
     def stop(self):
         res = {}

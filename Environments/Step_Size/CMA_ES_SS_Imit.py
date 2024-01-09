@@ -33,20 +33,21 @@ def run(
 
     train_env = TimeLimit(
         CMA_ES_SS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
-        max_episode_steps=int(max_eps_steps),
+        max_episode_steps=max_eps_steps,
     )
 
-    expert_functions = train_funcs[: int(len(train_funcs) * 0.1)]
     print("Collecting expert samples...")
     expert_samples = collect_expert_samples(
         dimension=dimension,
         instance=instance,
         x_start=x_start,
         sigma=sigma,
-        bbob_functions=expert_functions,
+        bbob_functions=train_funcs,
     )
+
     transitions = g_utils.create_Transitions(
-        data=expert_samples, n_train_funcs=len(expert_functions)
+        data=expert_samples,
+        n_train_funcs=len(train_funcs),
     )
 
     bc_trainer = bc.BC(
@@ -57,13 +58,15 @@ def run(
     )
 
     print("Training the agent with expert samples...")
-    bc_trainer.train(n_epochs=2)
+    bc_trainer.train(n_epochs=5)
 
     print("Continue training the agent with PPO...")
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
+
     if os.path.exists(
         f"Environments/Step_Size/Policies/ppo_policy_ss_imit_{dimension}D_{instance}I.pkl"
     ):
+        print("Loading the pre-trained policy...")
         ppo_model.policy = pickle.load(
             open(
                 f"Environments/Step_Size/Policies/ppo_policy_ss_imit_{dimension}D_{instance}I.pkl",
@@ -90,7 +93,7 @@ def run(
         x_start=x_start,
         sigma=sigma,
         ppo_model=ppo_model,
-        env_name="step_size",
+        env_name="step_size"
     )
     g_utils.print_pretty_table(
         results=results,

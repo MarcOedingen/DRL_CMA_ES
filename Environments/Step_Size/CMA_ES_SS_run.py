@@ -10,7 +10,9 @@ from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 def run(
     dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats
 ):
-    print("---------------Running learning for step-size adaptation---------------")
+    print(
+        "---------------Running learning for step -size adaptation---------------"
+    )
     func_dimensions = (
         np.repeat(dimension, 24) if dimension > 1 else np.random.randint(2, 40, 24)
     )
@@ -31,6 +33,7 @@ def run(
         CMA_ES_SS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
         max_episode_steps=int(max_eps_steps),
     )
+
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
     if os.path.exists(
         f"Environments/Step_Size/Policies/ppo_policy_ss_{dimension}D_{instance}I.pkl"

@@ -15,12 +15,11 @@ class CMA_ES_SS(gymnasium.Env):
 
         self.h = 40
         self.curr_sigma = sigma
-        self.curr_ps = 0
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
 
         self.action_space = gymnasium.spaces.Box(
-            low=1e-15, high=3, shape=(1,), dtype=np.float64
+            low=5e-2, high=10, shape=(1,), dtype=np.float64
         )
         self.observation_space = gymnasium.spaces.Box(
             low=-np.inf, high=np.inf, shape=(2 + 2 * self.h,), dtype=np.float64
@@ -38,7 +37,7 @@ class CMA_ES_SS(gymnasium.Env):
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
         fit = [self.objetive_funcs[self.curr_index](x) for x in X]
-        new_ps, _ = self.cma_es.tell(X, fit)
+        expert_sigma, ps = self.cma_es.tell(X, fit)
 
         self._last_achieved = np.min(fit)
 
@@ -54,32 +53,23 @@ class CMA_ES_SS(gymnasium.Env):
 
         # Update history
         if self.iteration > 0:
-            difference = (
-                np.clip(
-                    np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])),
-                    -self._f_limit,
-                    self._f_limit,
-                )
-                / reward
+            difference = np.clip(
+                np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])),
+                -self._f_limit,
+                self._f_limit,
             )
-            self.hist_fit_vals.append(difference)
+            self.hist_fit_vals.append(difference / reward)
             self.hist_sigmas.append(self.curr_sigma)
 
         new_state = np.concatenate(
             [
                 np.array([new_sigma]),
-                np.array([np.linalg.norm(new_ps) / self.cma_es.params.chiN - 1]),
+                np.array([np.linalg.norm(ps) / self.cma_es.params.chiN - 1]),
                 np.array(self.hist_fit_vals),
                 np.array(self.hist_sigmas),
             ]
         )
 
-        # Update current variables
-        self.curr_ps = new_ps
-        self.curr_sigma = new_sigma
-        self.cma_es.sigma = new_sigma
-
-        # Update current index
         if truncated:
             self.curr_index += 1
 
@@ -89,18 +79,20 @@ class CMA_ES_SS(gymnasium.Env):
         # Update iteration
         self.iteration += 1
 
+        # Update variables
+        self.curr_sigma = new_sigma
+        self.cma_es.sigma = new_sigma
+
         return new_state, reward, terminated, truncated, {}
 
     def reset(self, *, seed=None, options=None, verbose=1):
         if verbose > 0 and self.curr_index < len(self.objetive_funcs):
             print(
-                f"{((self.curr_index+1) / len(self.objetive_funcs) * 100):6.2f}% of training completed"
+                f"{(self.curr_index / len(self.objetive_funcs) * 100):6.2f}% of training completed"
                 f" | {self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value():30.10f} optimum"
                 f" | {self._last_achieved:30.10f} achieved"
                 f" | {np.abs(self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value() - self._last_achieved):30.18f} difference"
             )
-        self.curr_sigma = self.sigma
-        self.curr_ps = 0
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
         x_start = (
@@ -119,14 +111,15 @@ class CMA_ES_SS(gymnasium.Env):
             )
         )
         self.cma_es = CMAES_SS(x_start, self.sigma)
+        self.curr_sigma = self.sigma
         self.iteration = 0
         return (
             np.concatenate(
                 [
                     np.array([self.curr_sigma]),
-                    np.array([self.curr_ps]),
-                    list(self.hist_fit_vals),
-                    list(self.hist_sigmas),
+                    np.array([np.linalg.norm(self.cma_es.ps) / self.cma_es.params.chiN - 1]),
+                    np.array(self.hist_fit_vals),
+                    np.array(self.hist_sigmas),
                 ]
             ),
             {},
