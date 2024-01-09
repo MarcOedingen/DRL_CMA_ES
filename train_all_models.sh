@@ -7,6 +7,7 @@ declare sigma=0.5
 declare max_episode_steps=1600000
 declare train_repeats=5
 declare test_repeats=1
+declare seed=0
 
 for algorithm in "${algorithms[@]}"
 do
