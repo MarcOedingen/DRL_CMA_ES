@@ -117,7 +117,9 @@ class CMA_ES_SS(gymnasium.Env):
             np.concatenate(
                 [
                     np.array([self.curr_sigma]),
-                    np.array([np.linalg.norm(self.cma_es.ps) / self.cma_es.params.chiN - 1]),
+                    np.array(
+                        [np.linalg.norm(self.cma_es.ps) / self.cma_es.params.chiN - 1]
+                    ),
                     np.array(self.hist_fit_vals),
                     np.array(self.hist_sigmas),
                 ]

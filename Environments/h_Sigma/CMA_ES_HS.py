@@ -7,8 +7,14 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 
 def run_CMAES_HS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_HS(x_start, sigma)
-    start_state = np.array([np.linalg.norm(es.ps), es.count_eval, sigma, es.h_sig, objective_fct.dimension])
-    observations, actions, dones = [np.hstack((start_state, np.zeros(int(3 * h))))], [], []
+    start_state = np.array(
+        [np.linalg.norm(es.ps), es.count_eval, sigma, es.h_sig, objective_fct.dimension]
+    )
+    observations, actions, dones = (
+        [np.hstack((start_state, np.zeros(int(3 * h))))],
+        [],
+        [],
+    )
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
     hist_h_sig = deque(np.zeros(h), maxlen=h)
     hist_sigmas = deque(np.zeros(h), maxlen=h)
@@ -103,7 +109,6 @@ class CMAES_HS:
         self.count_eval = 0
         self.fit_vals = np.zeros(N)
         self.h_sig = 0
-
 
     def ask(self):
         self._update_Eigensystem()

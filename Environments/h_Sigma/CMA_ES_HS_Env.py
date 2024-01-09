@@ -127,7 +127,14 @@ class CMA_ES_HS(gymnasium.Env):
         return (
             np.concatenate(
                 [
-                    np.array([np.linalg.norm(self.cma_es.ps), self.cma_es.count_eval, self.sigma, self.cma_es.h_sig]),
+                    np.array(
+                        [
+                            np.linalg.norm(self.cma_es.ps),
+                            self.cma_es.count_eval,
+                            self.sigma,
+                            self.cma_es.h_sig,
+                        ]
+                    ),
                     np.array(
                         [
                             self.objetive_funcs[

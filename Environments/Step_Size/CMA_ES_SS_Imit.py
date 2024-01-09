@@ -93,7 +93,7 @@ def run(
         x_start=x_start,
         sigma=sigma,
         ppo_model=ppo_model,
-        env_name="step_size"
+        env_name="step_size",
     )
     g_utils.print_pretty_table(
         results=results,
