@@ -1,5 +1,5 @@
 #!/bin/bash
-declare algorithms=("step_size_imit" "decay_rate_cs" "decay_rate_cs_imit" "decay_rate_cc" "decay_rate_cc_imit" "damping" "damping_imit" "learning_rate_c1" "learning_rate_c1_imit" "learning_rate_cm" "learning_rate_cm_imit" "mu_effective" "mu_effective_imit" "h_sigma" "h_sigma_imit")
+declare algorithms=("step_size" "step_size_imit" "decay_rate_cs" "decay_rate_cs_imit" "decay_rate_cc" "decay_rate_cc_imit" "damping" "damping_imit" "learning_rate_c1" "learning_rate_c1_imit" "learning_rate_cm" "learning_rate_cm_imit" "mu_effective" "mu_effective_imit" "h_sigma" "h_sigma_imit")
 declare dimension=2
 declare x_start=0
 declare instance=1
