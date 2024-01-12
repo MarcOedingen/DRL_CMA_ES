@@ -60,7 +60,7 @@ def run(
     )
 
     print("Training the agent with expert samples...")
-    bc_trainer.train(n_epochs=1)
+    bc_trainer.train(n_epochs=10)
 
     print("Continue training the agent with PPO...")
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
@@ -102,3 +102,4 @@ def run(
     )
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
+    g_utils.save_results(results=results, policy=f"ppo_policy_dp_imit_{dimension}D_{instance}I")
