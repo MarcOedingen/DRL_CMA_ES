@@ -71,3 +71,4 @@ def run(
     )
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
+    g_utils.save_results(results=results, policy=f"ppo_policy_c1_{dimension}D_{instance}I")
