@@ -21,19 +21,16 @@ def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
         X = es.ask()
         fit = [objective_fct(x) for x in X]
         new_sigma, ps = es.tell(X, fit)
-        # es.sigma = new_sigma
-        reward = np.clip(-np.mean(fit), -f_limit, f_limit)
+        #es.sigma = new_sigma
+        f_best = np.min(fit)
         if iteration > 0:
-            difference = (
-                np.clip(
-                    np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])),
-                    -f_limit,
-                    f_limit,
-                )
-                / reward
+            difference = np.clip(
+                np.log(np.abs((f_best - hist_fit_vals[len(hist_fit_vals) - 1]))),
+                -f_limit,
+                f_limit,
             )
-            hist_fit_vals.append(difference)
-            hist_sigmas.append(curr_sigma)
+            hist_fit_vals.append(difference / f_best)
+        hist_sigmas.append(curr_sigma)
         observations.append(
             np.concatenate(
                 [
@@ -45,6 +42,7 @@ def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
             )
         )
         actions.append(new_sigma)
+        curr_sigma = new_sigma
         dones.append(False)
         iteration += 1
     dones[-1] = True

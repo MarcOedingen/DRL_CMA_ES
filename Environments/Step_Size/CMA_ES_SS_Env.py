@@ -30,6 +30,7 @@ class CMA_ES_SS(gymnasium.Env):
         self._f_limit = np.power(10, 28)
 
         self._last_achieved = 0
+        self._f_values = []
 
     def step(self, action):
         new_sigma = action[0]
@@ -40,9 +41,10 @@ class CMA_ES_SS(gymnasium.Env):
         expert_sigma, ps = self.cma_es.tell(X, fit)
 
         self._last_achieved = np.min(fit)
+        self._f_values.append(self._last_achieved)
 
         # Calculate reward (Turn minimization into maximization)
-        reward = -np.min(fit)
+        reward = -np.log(np.abs(np.min(fit) - self.objetive_funcs[self.curr_index].best_value()))
         reward = np.clip(reward, -self._f_limit, self._f_limit)
 
         # Check if the algorithm should stop
@@ -54,12 +56,12 @@ class CMA_ES_SS(gymnasium.Env):
         # Update history
         if self.iteration > 0:
             difference = np.clip(
-                np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])),
+                np.log(np.abs((self._last_achieved - self.hist_fit_vals[len(self.hist_fit_vals) - 1]))),
                 -self._f_limit,
                 self._f_limit,
             )
-            self.hist_fit_vals.append(difference / reward)
-            self.hist_sigmas.append(self.curr_sigma)
+            self.hist_fit_vals.append(difference / self._last_achieved)
+        self.hist_sigmas.append(self.curr_sigma)
 
         new_state = np.concatenate(
             [

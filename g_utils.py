@@ -130,7 +130,7 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
             while not (terminated or truncated):
                 action, _states = ppo_model.predict(obs, deterministic=True)
                 obs, reward, terminated, truncated, info = eval_env.step(action)
-            grp_rewards[reward_index] = abs(-reward - test_funcs[index].best_value())
+            grp_rewards[reward_index] = np.exp(-reward)
             reward_index += 1
         results.append(
             {
