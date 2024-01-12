@@ -28,6 +28,7 @@ def main():
             "h_sigma",
             "h_sigma_imit",
             "testing",
+            "eval"
         ],
         default="baseline",
     )
@@ -115,6 +116,10 @@ def main():
         module = importlib.import_module(module_path)
         run_function = getattr(module, function_name)
         run_function(args.dimension, args.x_start, args.sigma, args.instance)
+    elif args.algorithm == "eval":
+        module = importlib.import_module("Results.Eval_Results")
+        run_function = getattr(module, "run")
+        run_function(args.policy, args.dimension, args.instance)
     else:
         module_path, function_name = get_module_and_function(args.algorithm)
         module = importlib.import_module(module_path)
@@ -151,6 +156,7 @@ def get_module_and_function(algorithm):
         "mu_effective_imit": ("Environments.Mu_Effective.CMA_ES_ME_Imit", "run"),
         "h_sigma": ("Environments.h_Sigma.CMA_ES_HS_run", "run"),
         "h_sigma_imit": ("Environments.h_Sigma.CMA_ES_HS_Imit", "run"),
+        "eval": ("Results.Eval_Results", "run"),
     }
     return mapping.get(algorithm, ("", ""))
 

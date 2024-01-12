@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from tqdm import tqdm
 from prettytable import PrettyTable
@@ -39,13 +40,13 @@ def create_benchmark_functions(ids, dimensions, instances):
 
 
 def split_train_test_functions(
-    dimensions,
-    instances,
-    n_functions=24,
-    test_size=0.25,
-    train_repeats=10,
-    test_repeats=10,
-    random_state=42,
+        dimensions,
+        instances,
+        n_functions=24,
+        test_size=0.25,
+        train_repeats=10,
+        test_repeats=10,
+        random_state=42,
 ):
     train_ids, test_ids = train_test_split(
         np.arange(1, n_functions + 1), test_size=test_size, random_state=random_state
@@ -102,7 +103,7 @@ def get_env(env_name, test_func, x_start, sigma):
         env = CMA_ES_HS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:
         raise NotImplementedError
-    return TimeLimit(env, max_episode_steps=int(1e3 * 40**2))
+    return TimeLimit(env, max_episode_steps=int(1e3 * 40 ** 2))
 
 
 def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
@@ -220,3 +221,22 @@ def create_Transitions(data, n_train_funcs):
         dones=data["dones"],
         infos=np.array([{}] * len(obs)),
     )
+
+
+def save_results(results, policy):
+    results = sorted(results, key=lambda k: k["id"])
+    path = f"Results/{policy}.npz"
+    if os.path.exists(path):
+        data = np.load(path, allow_pickle=True)
+        diffs = data["diff"].tolist()
+        diffs.extend([r["stats"][0] for r in results])
+        np.savez(
+            path,
+            diff=diffs,
+        )
+    else:
+        diffs = [r["stats"][0] for r in results]
+        np.savez(
+            path,
+            diff=diffs,
+        )
