@@ -27,10 +27,12 @@ def main():
             "mu_effective_imit",
             "h_sigma",
             "h_sigma_imit",
+            "evolution_path_ps",
+            "evolution_path_ps_imit",
             "testing",
             "eval"
         ],
-        default="baseline",
+        default="evolution_path_ps_imit",
     )
     parser.add_argument(
         "--dimension",
@@ -75,6 +77,8 @@ def main():
             "ppo_policy_me_imit",
             "ppo_policy_hs",
             "ppo_policy_hs_imit",
+            "ppo_policy_ps",
+            "ppo_policy_ps_imit",
         ],
         default="ppo_policy_ss",
     )
@@ -156,6 +160,8 @@ def get_module_and_function(algorithm):
         "mu_effective_imit": ("Environments.Mu_Effective.CMA_ES_ME_Imit", "run"),
         "h_sigma": ("Environments.h_Sigma.CMA_ES_HS_run", "run"),
         "h_sigma_imit": ("Environments.h_Sigma.CMA_ES_HS_Imit", "run"),
+        "evolution_path_ps": ("Environments.Evolution_Path.CMA_ES_PS_run", "run"),
+        "evolution_path_ps_imit": ("Environments.Evolution_Path.CMA_ES_PS_Imit", "run"),
         "eval": ("Results.Eval_Results", "run"),
     }
     return mapping.get(algorithm, ("", ""))

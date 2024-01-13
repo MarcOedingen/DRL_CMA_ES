@@ -14,6 +14,7 @@ from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
 from Environments.Mu_Effective.CMA_ES_ME_Env import CMA_ES_ME
 from Environments.Learning_Rate.CMA_ES_C1_Env import CMA_ES_C1
 from Environments.Learning_Rate.CMA_ES_CM_Env import CMA_ES_CM
+from Environments.Evolution_Path.CMA_ES_PS_Env import CMA_ES_PS
 
 from stable_baselines3.common.callbacks import BaseCallback
 
@@ -101,6 +102,8 @@ def get_env(env_name, test_func, x_start, sigma):
         env = CMA_ES_ME(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     elif env_name == "h_sigma":
         env = CMA_ES_HS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+    elif env_name == "evolution_path_ps":
+        env = CMA_ES_PS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:
         raise NotImplementedError
     return TimeLimit(env, max_episode_steps=int(1e3 * 40 ** 2))
