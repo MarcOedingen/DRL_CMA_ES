@@ -122,6 +122,30 @@ def train_load_model(policy_path, dimension, instance, split, p_class, train_env
     return ppo_model
 
 
+def train_load_model_imit(policy_path, dimension, instance, split, p_class, train_env, max_evals, bc_policy):
+    ppo_model = PPO("MlpPolicy", train_env, verbose=0)
+    p_class = p_class if split == "classes" else -1
+    if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
+        print("Continue training the policy...")
+        ppo_model.policy = bc_policy
+        ppo_model.learn(
+            total_timesteps=max_evals,
+            callback=StopOnAllFunctionsEvaluated(),
+        )
+        pickle.dump(
+            ppo_model.policy,
+            open(
+                f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl",
+                "wb",
+            ),
+        )
+    else:
+        print("The policy exists. Loading the policy...")
+        ppo_model.policy = pickle.load(
+            open(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl", "rb")
+        )
+    return ppo_model
+
 
 def get_env(env_name, test_func, x_start, sigma):
     if env_name == "step_size":

@@ -49,14 +49,17 @@ def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     return np.array(observations), np.array(actions), np.array(dones)
 
 
-def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
+def collect_expert_samples(dimension, instance, split, p_class, x_start, sigma, bbob_functions):
+    p_class = p_class if split == "classes" else -1
     if os.path.isfile(
-        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"
+        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     ):
+        print("Loading expert samples...")
         data = np.load(
-            f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"
+            f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I_{p_class}C.npz"
         )
         return data
+    print("Collecting expert samples...")
     observations, actions, dones = [], [], []
     for function in tqdm(bbob_functions):
         _x_start = (
@@ -73,13 +76,13 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
         actions.extend(act)
         dones.extend(done)
     np.savez(
-        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz",
+        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I_{p_class}C.npz",
         observations=observations,
         actions=actions,
         dones=dones,
     )
     return np.load(
-        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I.npz"
+        f"Environments/Step_Size/Samples/CMA_ES_SS_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     )
 
 
