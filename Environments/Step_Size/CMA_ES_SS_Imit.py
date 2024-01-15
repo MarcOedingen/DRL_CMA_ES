@@ -52,7 +52,7 @@ def run(
         rng=np.random.default_rng(42),
     )
 
-    print("Pre-training the agent with expert samples...")
+    print("Pre-training policy with expert samples...")
     bc_trainer.train(n_epochs=10)
 
     ppo_model = g_utils.train_load_model_imit(

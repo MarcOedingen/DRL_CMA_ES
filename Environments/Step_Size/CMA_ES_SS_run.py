@@ -23,16 +23,14 @@ def run(
         max_episode_steps=int(max_eps_steps),
     )
 
-    max_evals = int(max_eps_steps * len(train_funcs) * train_repeats)
-    policy_path = f"Environments/Step_Size/Policies/ppo_policy_ss"
     ppo_model = g_utils.train_load_model(
-        policy_path=policy_path,
+        policy_path="Environments/Step_Size/Policies/ppo_policy_ss",
         dimension=dimension,
         instance=instance,
         split=split,
         p_class=p_class,
         train_env=train_env,
-        max_evals=max_evals,
+        max_evals=int(max_eps_steps * len(train_funcs) * train_repeats),
     )
 
     results = g_utils.evaluate_agent(

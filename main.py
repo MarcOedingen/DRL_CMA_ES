@@ -32,7 +32,7 @@ def main():
             "testing",
             "eval"
         ],
-        default="step_size",
+        default="mu_effective_imit",
     )
     parser.add_argument(
         "--dimension",
@@ -92,7 +92,7 @@ def main():
         "--train_repeats",
         type=int,
         help="The number of repeats for the training functions",
-        default=10,
+        default=5,
     )
     parser.add_argument(
         "--test_repeats",
@@ -105,20 +105,20 @@ def main():
         type=str,
         help="The split of the functions",
         choices=["functions", "classes"],
-        default="functions",
+        default="classes",
     )
     parser.add_argument(
         "--p_class",
         type=int,
         help="The class of the functions",
         choices=[i for i in range(1, 6)],
-        default=1,
+        default=4,
     )
     parser.add_argument(
         "--seed",
         type=int,
         help="The seed for the random number generator",
-        default=4567,
+        default=213324,
     )
 
     args = parser.parse_args()
