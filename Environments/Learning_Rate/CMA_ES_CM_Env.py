@@ -43,7 +43,7 @@ class CMA_ES_CM(gymnasium.Env):
         self._last_achieved = np.min(fit)
 
         # Calculate reward (Turn minimization into maximization)
-        reward = -np.min(fit)
+        reward = -np.log(np.abs(np.min(fit) - self.objetive_funcs[self.curr_index].best_value()))
         reward = np.clip(reward, -self._f_limit, self._f_limit)
 
         # Check if the algorithm should stop
@@ -55,11 +55,11 @@ class CMA_ES_CM(gymnasium.Env):
         # Update history
         if self.iteration > 0:
             difference = np.clip(
-                np.abs((reward - self.hist_fit_vals[len(self.hist_fit_vals) - 1])),
+                np.log(np.abs((self._last_achieved - self.hist_fit_vals[len(self.hist_fit_vals) - 1]))),
                 -self._f_limit,
                 self._f_limit,
             )
-            self.hist_fit_vals.append(difference / reward)
+            self.hist_fit_vals.append(difference / np.log(np.abs(self._last_achieved)))
             self.hist_cm.append(self.curr_cm)
 
         new_state = np.concatenate(
@@ -92,7 +92,7 @@ class CMA_ES_CM(gymnasium.Env):
         return new_state, reward, terminated, truncated, {}
 
     def reset(self, *, seed=None, options=None, verbose=1):
-        if verbose > 0 and self.curr_index < len(self.objetive_funcs):
+        if verbose > 0 and len(self.objetive_funcs) > self.curr_index > 0:
             print(
                 f"{(self.curr_index / len(self.objetive_funcs) * 100):6.2f}% of training completed"
                 f" | {self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value():30.10f} optimum"
