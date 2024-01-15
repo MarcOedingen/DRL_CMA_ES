@@ -1,28 +1,18 @@
-import os
-import pickle
 import g_utils
 import numpy as np
-from stable_baselines3 import PPO
 from gymnasium.wrappers import TimeLimit
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 
 
 def run(
-    dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats, seed
+        dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats, split, p_class, seed
 ):
-    print("---------------Running learning for step -size adaptation---------------")
-    func_dimensions = (
-        np.repeat(dimension, 24) if dimension > 1 else np.random.randint(2, 40, 24)
-    )
-    func_instances = (
-        np.repeat(instance, 24)
-        if instance > 0
-        else np.random.randint(1, int(1e3) + 1, 24)
-    )
-
-    train_funcs, test_funcs = g_utils.split_train_test_functions(
-        dimensions=func_dimensions,
-        instances=func_instances,
+    print("---------------Running learning for step-size adaptation---------------")
+    train_funcs, test_funcs = g_utils.split_train_test(
+        dimension=dimension,
+        instance=instance,
+        split=split,
+        p_class=p_class,
         train_repeats=train_repeats,
         test_repeats=test_repeats,
         random_state=seed
@@ -33,30 +23,18 @@ def run(
         max_episode_steps=int(max_eps_steps),
     )
 
-    ppo_model = PPO("MlpPolicy", train_env, verbose=0)
-    if os.path.exists(
-        f"Environments/Step_Size/Policies/ppo_policy_ss_{dimension}D_{instance}I.pkl"
-    ):
-        ppo_model.policy = pickle.load(
-            open(
-                f"Environments/Step_Size/Policies/ppo_policy_ss_{dimension}D_{instance}I.pkl",
-                "rb",
-            )
-        )
-    else:
-        ppo_model.learn(
-            total_timesteps=int(max_eps_steps * len(train_funcs) * train_repeats),
-            callback=g_utils.StopOnAllFunctionsEvaluated(),
-        )
-        pickle.dump(
-            ppo_model.policy,
-            open(
-                f"Environments/Step_Size/Policies/ppo_policy_ss_{dimension}D_{instance}I.pkl",
-                "wb",
-            ),
-        )
+    max_evals = int(max_eps_steps * len(train_funcs) * train_repeats)
+    policy_path = f"Environments/Step_Size/Policies/ppo_policy_ss"
+    ppo_model = g_utils.train_load_model(
+        policy_path=policy_path,
+        dimension=dimension,
+        instance=instance,
+        split=split,
+        p_class=p_class,
+        train_env=train_env,
+        max_evals=max_evals,
+    )
 
-    print("Evaluating the agent on the test functions...")
     results = g_utils.evaluate_agent(
         test_funcs=test_funcs,
         x_start=x_start,
@@ -69,4 +47,5 @@ def run(
     )
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
-    g_utils.save_results(results=results, policy=f"ppo_policy_ss_{dimension}D_{instance}I")
+    p_class = p_class if split == "classes" else -1
+    g_utils.save_results(results=results, policy=f"ppo_policy_ss_{dimension}D_{instance}I_{p_class}C")

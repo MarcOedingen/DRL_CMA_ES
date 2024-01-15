@@ -32,13 +32,13 @@ def main():
             "testing",
             "eval"
         ],
-        default="evolution_path_ps_imit",
+        default="step_size",
     )
     parser.add_argument(
         "--dimension",
         type=int,
         help="The dimension of the problem",
-        choices=[i for i in range(-1, 41) if i != 0 and i != 1],
+        choices=[-1, 2, 3, 5, 10, 20, 40],
         default=2,
     )
     parser.add_argument(
@@ -52,8 +52,8 @@ def main():
         "--instance",
         type=int,
         help="The instance of the problem",
-        choices=[i for i in range(-1, int(1e3) + 1) if i != 0],
-        default=1,
+        choices=[i for i in range(-1, 10 + 1) if i != 0],
+        default=-1,
     )
     parser.add_argument("--sigma", type=float, help="The initial sigma", default=0.5)
     parser.add_argument(
@@ -101,6 +101,20 @@ def main():
         default=10,
     )
     parser.add_argument(
+        "--split",
+        type=str,
+        help="The split of the functions",
+        choices=["functions", "classes"],
+        default="functions",
+    )
+    parser.add_argument(
+        "--p_class",
+        type=int,
+        help="The class of the functions",
+        choices=[i for i in range(1, 6)],
+        default=1,
+    )
+    parser.add_argument(
         "--seed",
         type=int,
         help="The seed for the random number generator",
@@ -136,6 +150,8 @@ def main():
             args.max_episode_steps,
             args.train_repeats,
             args.test_repeats,
+            args.split,
+            args.p_class,
             args.seed,
         )
 

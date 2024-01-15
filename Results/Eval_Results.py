@@ -9,9 +9,10 @@ def load_results(path):
         return []
 
 
-def run(policy, dimension, instance):
-    print(f"---------------Evaluating results for {policy} on {dimension}D-{instance}I---------------")
-    path = f"Results/{policy}_{dimension}D_{instance}I.npz"
+def run(policy, dimension, instance, split, p_class):
+    p_class = p_class if split == "classes" else -1
+    print(f"---------------Evaluating results for {policy} on {dimension}D_{instance}I_{p_class}C---------------")
+    path = f"Results/{policy}_{dimension}D_{instance}I_{p_class}C.npz"
     results = load_results(path)
     print(f"Mean difference: {np.mean(results)} ± {np.std(results)} for {len(results)} test functions")
 

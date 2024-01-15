@@ -1,6 +1,8 @@
 import os
+import pickle
 import numpy as np
 from tqdm import tqdm
+from stable_baselines3 import PPO
 from prettytable import PrettyTable
 from gymnasium.wrappers import TimeLimit
 from imitation.data.types import Transitions
@@ -25,7 +27,7 @@ class StopOnAllFunctionsEvaluated(BaseCallback):
         self.stop = False
 
     def _on_step(self) -> bool:
-        if self.model.env.envs[0].get_wrapper_attr('stop'):
+        if self.model.env.envs[0].get_wrapper_attr("stop"):
             return False
         return True
 
@@ -40,36 +42,45 @@ def create_benchmark_functions(ids, dimensions, instances):
     return funcs
 
 
-def split_train_test_functions(
-        dimensions,
-        instances,
-        n_functions=24,
-        test_size=0.25,
-        train_repeats=10,
-        test_repeats=10,
-        random_state=42,
-):
-    train_ids, test_ids = train_test_split(
-        np.arange(1, n_functions + 1), test_size=test_size, random_state=random_state
+def get_func_dim_inst(dimension, instance, dim_choices, inst_choices, n_funcs=24):
+    func_dimensions = (
+        np.repeat(dimension, n_funcs) if dimension > 1 else np.random.choice(dim_choices, n_funcs)
     )
+    func_instances = (
+        np.repeat(instance, n_funcs) if instance > 0 else np.random.choice(inst_choices, n_funcs)
+    )
+    return func_dimensions, func_instances
 
-    if not np.all(dimensions == dimensions[0]):
-        train_dimensions = np.random.randint(2, 41, size=len(train_ids) * train_repeats)
-        test_dimensions = np.random.randint(2, 41, size=len(test_ids) * test_repeats)
-    else:
-        train_dimensions = np.repeat(
-            dimensions[: len(train_ids)], repeats=train_repeats
-        )
-        test_dimensions = np.repeat(dimensions[: len(test_ids)], repeats=test_repeats)
 
-    if not np.all(instances == instances[0]):
-        train_instances = np.random.randint(
-            1, 1001, size=len(train_ids) * train_repeats
-        )
-        test_instances = np.random.randint(1, 1001, size=len(test_ids) * test_repeats)
-    else:
-        train_instances = np.repeat(instances[: len(train_ids)], repeats=train_repeats)
-        test_instances = np.repeat(instances[: len(test_ids)], repeats=test_repeats)
+def get_class_func_ids(_class):
+    class_range = {
+        1: (1, 5),
+        2: (6, 9),
+        3: (10, 14),
+        4: (15, 19),
+        5: (20, 24),
+    }
+    return np.arange(class_range[_class][0], class_range[_class][1] + 1)
+
+
+def split_train_test(
+        dimension, instance, split, p_class, n_functions=24, test_size=0.25, train_repeats=10, test_repeats=10,
+        random_state=42
+):
+    ids = get_class_func_ids(p_class) if split == "classes" else np.arange(1, n_functions + 1)
+    test_size = 1 / len(ids) if split == "classes" else test_size
+    train_ids, test_ids = train_test_split(ids, test_size=test_size, random_state=random_state)
+    return generate_splits(dimension, instance, train_ids, test_ids, train_repeats, test_repeats)
+
+
+def generate_splits(dimension, instance, train_ids, test_ids, train_repeats, test_repeats):
+    dim_choices = [2, 3, 5, 10, 20, 40]
+    inst_choices = [i for i in range(1, 11)]
+
+    train_dimensions = _choose_or_repeat(dimension, dim_choices, len(train_ids) * train_repeats)
+    test_dimensions = _choose_or_repeat(dimension, dim_choices, len(test_ids) * test_repeats)
+    train_instances = _choose_or_repeat(instance, inst_choices, len(train_ids) * train_repeats)
+    test_instances = _choose_or_repeat(instance, inst_choices, len(test_ids) * test_repeats)
 
     train_ids = np.repeat(train_ids, repeats=train_repeats)
     test_ids = np.repeat(test_ids, repeats=test_repeats)
@@ -77,12 +88,39 @@ def split_train_test_functions(
     np.random.shuffle(train_ids)
     np.random.shuffle(test_ids)
 
-    train_funcs = create_benchmark_functions(
-        train_ids, train_dimensions, train_instances
-    )
+    train_funcs = create_benchmark_functions(train_ids, train_dimensions, train_instances)
     test_funcs = create_benchmark_functions(test_ids, test_dimensions, test_instances)
 
     return train_funcs, test_funcs
+
+
+def _choose_or_repeat(choice, choices, size):
+    return np.random.choice(choices, size=size) if choice < 1 else np.repeat(np.array([choice]), repeats=size)
+
+
+def train_load_model(policy_path, dimension, instance, split, p_class, train_env, max_evals):
+    ppo_model = PPO("MlpPolicy", train_env, verbose=0)
+    p_class = p_class if split == "classes" else -1
+    if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
+        print("The policy does not exist. Training the policy...")
+        ppo_model.learn(
+            total_timesteps=max_evals,
+            callback=StopOnAllFunctionsEvaluated(),
+        )
+        pickle.dump(
+            ppo_model.policy,
+            open(
+                f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl",
+                "wb",
+            ),
+        )
+    else:
+        print("The policy exists. Loading the policy...")
+        ppo_model.policy = pickle.load(
+            open(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl", "rb")
+        )
+    return ppo_model
+
 
 
 def get_env(env_name, test_func, x_start, sigma):
@@ -110,6 +148,7 @@ def get_env(env_name, test_func, x_start, sigma):
 
 
 def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
+    print("Evaluating the agent on the test functions...")
     groups = {}
     for index, test_func in enumerate(test_funcs):
         key = test_func.id

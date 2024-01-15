@@ -88,7 +88,7 @@ class CMA_ES_SS(gymnasium.Env):
         return new_state, reward, terminated, truncated, {}
 
     def reset(self, *, seed=None, options=None, verbose=1):
-        if verbose > 0 and self.curr_index < len(self.objetive_funcs):
+        if verbose > 0 and len(self.objetive_funcs) > self.curr_index > 0:
             print(
                 f"{(self.curr_index / len(self.objetive_funcs) * 100):6.2f}% of training completed"
                 f" | {self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value():30.10f} optimum"
