@@ -25,7 +25,7 @@ class StopOnAllFunctionsEvaluated(BaseCallback):
         self.stop = False
 
     def _on_step(self) -> bool:
-        if self.model.env.envs[0].env.stop:
+        if self.model.env.envs[0].get_wrapper_attr('stop'):
             return False
         return True
 
