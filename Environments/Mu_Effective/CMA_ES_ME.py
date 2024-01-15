@@ -22,17 +22,14 @@ def run_CMAES_ME(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
         X = es.ask()
         fit = [objective_fct(x) for x in X]
         es.tell(X, fit)
-        reward = np.clip(-np.mean(fit), -f_limit, f_limit)
+        f_best = np.min(fit)
         if iteration > 0:
-            difference = (
-                np.clip(
-                    np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])),
-                    -f_limit,
-                    f_limit,
-                )
-                / reward
+            difference = np.clip(
+                np.log(np.abs((f_best - hist_fit_vals[len(hist_fit_vals) - 1]))),
+                -f_limit,
+                f_limit,
             )
-            hist_fit_vals.append(difference)
+            hist_fit_vals.append(difference / np.log(np.abs(f_best)))
             hist_mueff.append(es.params.mueff)
         observations.append(
             np.concatenate(
