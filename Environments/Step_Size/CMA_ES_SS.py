@@ -21,7 +21,7 @@ def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
         X = es.ask()
         fit = [objective_fct(x) for x in X]
         new_sigma, ps = es.tell(X, fit)
-        #es.sigma = new_sigma
+        es.sigma = new_sigma
         f_best = np.min(fit)
         if iteration > 0:
             difference = np.clip(
