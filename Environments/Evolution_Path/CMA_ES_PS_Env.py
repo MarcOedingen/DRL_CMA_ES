@@ -42,12 +42,16 @@ class CMA_ES_PS(gymnasium.Env):
         # Update variables
         self.cma_es.ps = new_ps
 
-        self.cma_es.tell2(arx=arx, x_old=x_old, N=self.objetive_funcs[self.curr_index].dimension)
+        self.cma_es.tell2(
+            arx=arx, x_old=x_old, N=self.objetive_funcs[self.curr_index].dimension
+        )
 
         self._last_achieved = np.min(fit)
 
         # Calculate reward (Turn minimization into maximization)
-        reward = -np.log(np.abs(np.min(fit) - self.objetive_funcs[self.curr_index].best_value()))
+        reward = -np.log(
+            np.abs(np.min(fit) - self.objetive_funcs[self.curr_index].best_value())
+        )
         reward = np.clip(reward, -self._f_limit, self._f_limit)
 
         # Check if the algorithm should stop
@@ -60,7 +64,14 @@ class CMA_ES_PS(gymnasium.Env):
         pad_size = 40 - self.objetive_funcs[self.curr_index].dimension
         if self.iteration > 0:
             difference = np.clip(
-                np.log(np.abs((self._last_achieved - self.hist_fit_vals[len(self.hist_fit_vals) - 1]))),
+                np.log(
+                    np.abs(
+                        (
+                            self._last_achieved
+                            - self.hist_fit_vals[len(self.hist_fit_vals) - 1]
+                        )
+                    )
+                ),
                 -self._f_limit,
                 self._f_limit,
             )
@@ -70,7 +81,9 @@ class CMA_ES_PS(gymnasium.Env):
         new_state = np.concatenate(
             [
                 np.array([self.objetive_funcs[self.curr_index].dimension]),
-                np.pad(intermediate_ps, (0, pad_size), "constant") if pad_size > 0 else intermediate_ps,
+                np.pad(intermediate_ps, (0, pad_size), "constant")
+                if pad_size > 0
+                else intermediate_ps,
                 np.pad(new_ps, (0, pad_size), "constant") if pad_size > 0 else new_ps,
                 np.array(self.hist_fit_vals),
                 np.array(self.hist_ps).flatten(),
@@ -120,11 +133,19 @@ class CMA_ES_PS(gymnasium.Env):
         )
         self.cma_es = CMAES_PS(x_start, self.sigma)
         self.iteration = 0
-        self.curr_ps = np.zeros(self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension)
+        self.curr_ps = np.zeros(
+            self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension
+        )
         return (
             np.concatenate(
                 [
-                    np.array([self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].dimension]),
+                    np.array(
+                        [
+                            self.objetive_funcs[
+                                self.curr_index % len(self.objetive_funcs)
+                            ].dimension
+                        ]
+                    ),
                     np.zeros(40 * 43),
                 ]
             ),

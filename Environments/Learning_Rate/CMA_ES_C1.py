@@ -42,7 +42,9 @@ def run_CMAES_C1(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     return np.array(observations), np.array(actions), np.array(dones)
 
 
-def collect_expert_samples(dimension, instance, split, p_class, x_start, sigma, bbob_functions):
+def collect_expert_samples(
+    dimension, instance, split, p_class, x_start, sigma, bbob_functions
+):
     p_class = p_class if split == "classes" else -1
     if os.path.isfile(
         f"Environments/Learning_Rate/Samples/CMA_ES_C1_Samples_{dimension}D_{instance}I_{p_class}C.npz"

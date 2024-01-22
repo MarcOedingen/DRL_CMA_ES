@@ -10,7 +10,14 @@ from Environments.Evolution_Path.CMA_ES_PS import collect_expert_samples
 
 
 def run(
-    dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats, seed
+    dimension,
+    x_start,
+    sigma,
+    instance,
+    max_eps_steps,
+    train_repeats,
+    test_repeats,
+    seed,
 ):
     print(
         "---------------Running imitation learning for step-size adaptation---------------"
@@ -101,4 +108,6 @@ def run(
     )
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
-    g_utils.save_results(results=results, policy=f"ppo_policy_ss_imit_{dimension}D_{instance}I")
+    g_utils.save_results(
+        results=results, policy=f"ppo_policy_ss_imit_{dimension}D_{instance}I"
+    )

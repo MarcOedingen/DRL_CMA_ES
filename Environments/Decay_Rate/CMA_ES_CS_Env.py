@@ -45,7 +45,9 @@ class CMA_ES_CS(gymnasium.Env):
         self._last_achieved = np.min(fit)
 
         # Calculate reward (Turn minimization into maximization)
-        reward = -np.log(np.abs(np.min(fit) - self.objetive_funcs[self.curr_index].best_value()))
+        reward = -np.log(
+            np.abs(np.min(fit) - self.objetive_funcs[self.curr_index].best_value())
+        )
         reward = np.clip(reward, -self._f_limit, self._f_limit)
 
         # Check if the algorithm should stop
@@ -57,7 +59,14 @@ class CMA_ES_CS(gymnasium.Env):
         # Update history
         if self.iteration > 0:
             difference = np.clip(
-                np.log(np.abs((self._last_achieved - self.hist_fit_vals[len(self.hist_fit_vals) - 1]))),
+                np.log(
+                    np.abs(
+                        (
+                            self._last_achieved
+                            - self.hist_fit_vals[len(self.hist_fit_vals) - 1]
+                        )
+                    )
+                ),
                 -self._f_limit,
                 self._f_limit,
             )

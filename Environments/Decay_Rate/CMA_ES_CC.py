@@ -43,7 +43,9 @@ def run_CMAES_CC(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     return np.array(observations), np.array(actions), np.array(dones)
 
 
-def collect_expert_samples(dimension, instance, split, p_class, x_start, sigma, bbob_functions):
+def collect_expert_samples(
+    dimension, instance, split, p_class, x_start, sigma, bbob_functions
+):
     if os.path.isfile(
         f"Environments/Decay_Rate/Samples/CMA_ES_CC_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     ):

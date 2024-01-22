@@ -8,7 +8,7 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 def run_CMAES_PS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_PS(x_start, sigma)
     start_state = np.array([objective_fct.dimension])
-    observations, actions, dones = [np.hstack((start_state, np.zeros(40*43)))], [], []
+    observations, actions, dones = [np.hstack((start_state, np.zeros(40 * 43)))], [], []
     hist_fit_vals = deque(np.zeros(40), maxlen=h)
     hist_ps = deque([np.zeros(40) for _ in range(h)], maxlen=h)
     iteration = 0
@@ -28,19 +28,23 @@ def run_CMAES_PS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                 f_limit,
             )
             hist_fit_vals.append(difference)
-        hist_ps.append(np.pad(cur_ps, (0, pad_size), 'constant') if pad_size > 0 else cur_ps)
+        hist_ps.append(
+            np.pad(cur_ps, (0, pad_size), "constant") if pad_size > 0 else cur_ps
+        )
         observations.append(
             np.concatenate(
                 [
                     np.array([objective_fct.dimension]),
-                    np.pad(intermediate_ps, (0, pad_size), 'constant') if pad_size > 0 else intermediate_ps,
-                    np.pad(ps, (0, pad_size), 'constant') if pad_size > 0 else ps,
+                    np.pad(intermediate_ps, (0, pad_size), "constant")
+                    if pad_size > 0
+                    else intermediate_ps,
+                    np.pad(ps, (0, pad_size), "constant") if pad_size > 0 else ps,
                     np.array(hist_fit_vals),
                     np.array(hist_ps).flatten(),
                 ]
             )
         )
-        actions.append(np.pad(ps, (0, pad_size), 'constant') if pad_size > 0 else ps)
+        actions.append(np.pad(ps, (0, pad_size), "constant") if pad_size > 0 else ps)
         cur_ps = ps
         dones.append(False)
         iteration += 1
