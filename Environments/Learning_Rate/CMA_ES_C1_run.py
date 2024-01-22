@@ -34,7 +34,12 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_C1(objective_funcs=train_funcs, x_start=x_start, sigma=sigma, reward_type=reward_type),
+        CMA_ES_C1(
+            objective_funcs=train_funcs,
+            x_start=x_start,
+            sigma=sigma,
+            reward_type=reward_type,
+        ),
         max_episode_steps=int(max_eps_steps),
     )
 

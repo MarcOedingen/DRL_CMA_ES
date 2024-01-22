@@ -60,14 +60,9 @@ def main():
         type=str,
         help="The reward function",
         choices=["log_opt", "ecdf"],
-        default="ecdf"
+        default="ecdf",
     )
-    parser.add_argument(
-        "--sigma",
-        type=float,
-        help="The initial sigma",
-        default=0.5
-    )
+    parser.add_argument("--sigma", type=float, help="The initial sigma", default=0.5)
     parser.add_argument(
         "--policy",
         type=str,
@@ -145,7 +140,15 @@ def main():
         module_path, function_name = get_module_and_function(args.algorithm)
         module = importlib.import_module(module_path)
         run_function = getattr(module, function_name)
-        run_function(args.dimension, args.x_start, args.sigma, args.instance, args.split, args.p_class, args.test_repeats)
+        run_function(
+            args.dimension,
+            args.x_start,
+            args.sigma,
+            args.instance,
+            args.split,
+            args.p_class,
+            args.test_repeats,
+        )
     elif args.algorithm == "eval":
         module = importlib.import_module("Results.Eval_Results")
         run_function = getattr(module, "run")

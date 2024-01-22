@@ -37,7 +37,12 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_DP(objective_funcs=train_funcs, x_start=x_start, sigma=sigma, reward_type=reward_type),
+        CMA_ES_DP(
+            objective_funcs=train_funcs,
+            x_start=x_start,
+            sigma=sigma,
+            reward_type=reward_type,
+        ),
         max_episode_steps=int(max_eps_steps),
     )
 
@@ -84,7 +89,7 @@ def run(
         sigma=sigma,
         ppo_model=ppo_model,
         env_name="damping",
-        reward_type=reward_type
+        reward_type=reward_type,
     )
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]

@@ -44,9 +44,12 @@ class CMA_ES_CC(gymnasium.Env):
         pc = self.cma_es.tell(X, fit)
 
         self.last_achieved = np.min(fit)
-        reward = g_utils.calc_reward(optimum=self.objective_funcs[self.curr_index].best_value(),
-                                     min_eval=self.last_achieved, reward_type=self.reward_type,
-                                     reward_targets=self._f_targets)
+        reward = g_utils.calc_reward(
+            optimum=self.objective_funcs[self.curr_index].best_value(),
+            min_eval=self.last_achieved,
+            reward_type=self.reward_type,
+            reward_targets=self._f_targets,
+        )
         reward = np.clip(reward, -self._f_limit, self._f_limit)
 
         # Check if the algorithm should stop
@@ -106,7 +109,11 @@ class CMA_ES_CC(gymnasium.Env):
             )
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_cc = deque(np.zeros(self.h), maxlen=self.h)
-        self._f_targets = g_utils.set_reward_targets(self.objective_funcs[self.curr_index % len(self.objective_funcs)].best_value())
+        self._f_targets = g_utils.set_reward_targets(
+            self.objective_funcs[
+                self.curr_index % len(self.objective_funcs)
+            ].best_value()
+        )
         x_start = (
             np.zeros(
                 self.objective_funcs[
