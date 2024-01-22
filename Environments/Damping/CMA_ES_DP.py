@@ -16,17 +16,14 @@ def run_CMAES_DP(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
         X = es.ask()
         fit = [objective_fct(x) for x in X]
         sigma = es.tell(X, fit)
-        reward = np.clip(-np.mean(fit), -f_limit, f_limit)
+        f_best = np.min(fit)
         if iteration > 0:
-            difference = (
-                np.clip(
-                    np.abs((reward - hist_fit_vals[len(hist_fit_vals) - 1])),
-                    -f_limit,
-                    f_limit,
-                )
-                / reward
+            difference = np.clip(
+                np.log(np.abs((f_best - hist_fit_vals[len(hist_fit_vals) - 1]))),
+                -f_limit,
+                f_limit,
             )
-            hist_fit_vals.append(difference)
+            hist_fit_vals.append(difference / np.log(np.abs(f_best)))
             hist_damps.append(es.params.damps)
         observations.append(
             np.concatenate(
@@ -45,12 +42,13 @@ def run_CMAES_DP(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     return np.array(observations), np.array(actions), np.array(dones)
 
 
-def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
+def collect_expert_samples(dimension, instance, split, p_class, x_start, sigma, bbob_functions):
+    p_class = p_class if split == "classes" else -1
     if os.path.isfile(
-        f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I.npz"
+        f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     ):
         data = np.load(
-            f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I.npz"
+            f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I_{p_class}C.npz"
         )
         return data
     observations, actions, dones = [], [], []
@@ -69,13 +67,13 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
         actions.extend(act)
         dones.extend(done)
     np.savez(
-        f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I.npz",
+        f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I_{p_class}C.npz",
         observations=observations,
         actions=actions,
         dones=dones,
     )
     return np.load(
-        f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I.npz"
+        f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     )
 
 

@@ -11,26 +11,19 @@ from Environments.Damping.CMA_ES_DP import collect_expert_samples
 
 
 def run(
-    dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats, seed
+dimension, x_start, sigma, instance, max_eps_steps, train_repeats, test_repeats, split, p_class, seed
 ):
     print(
         "---------------Running imitation learning for damping (dp) adaptation---------------"
     )
-    func_dimensions = (
-        np.repeat(dimension, 24) if dimension > 1 else np.random.randint(2, 40, 24)
-    )
-    func_instances = (
-        np.repeat(instance, 24)
-        if instance > 0
-        else np.random.randint(1, int(1e3) + 1, 24)
-    )
-
-    train_funcs, test_funcs = g_utils.split_train_test_functions(
-        dimensions=func_dimensions,
-        instances=func_instances,
+    train_funcs, test_funcs = g_utils.split_train_test(
+        dimension=dimension,
+        instance=instance,
+        split=split,
+        p_class=p_class,
         train_repeats=train_repeats,
         test_repeats=test_repeats,
-        random_state=seed,
+        random_state=seed
     )
 
     train_env = TimeLimit(
@@ -38,10 +31,11 @@ def run(
         max_episode_steps=int(max_eps_steps),
     )
 
-    print("Collecting expert samples...")
     expert_samples = collect_expert_samples(
         dimension=dimension,
         instance=instance,
+        split=split,
+        p_class=p_class,
         x_start=x_start,
         sigma=sigma,
         bbob_functions=train_funcs,
@@ -59,35 +53,19 @@ def run(
         rng=np.random.default_rng(42),
     )
 
-    print("Training the agent with expert samples...")
+    print("Pre-training policy with expert samples...")
     bc_trainer.train(n_epochs=10)
 
-    print("Continue training the agent with PPO...")
-    ppo_model = PPO("MlpPolicy", train_env, verbose=0)
-
-    if os.path.exists(
-        f"Environments/Damping/Policies/ppo_policy_dp_imit_{dimension}D_{instance}I.pkl"
-    ):
-        print("Loading the pre-trained policy...")
-        ppo_model.policy = pickle.load(
-            open(
-                f"Environments/Damping/Policies/ppo_policy_dp_imit_{dimension}D_{instance}I.pkl",
-                "rb",
-            )
-        )
-    else:
-        ppo_model.policy = bc_trainer.policy
-        ppo_model.learn(
-            total_timesteps=int(max_eps_steps * len(train_funcs) * train_repeats),
-            callback=g_utils.StopOnAllFunctionsEvaluated(),
-        )
-        pickle.dump(
-            ppo_model.policy,
-            open(
-                f"Environments/Damping/Policies/ppo_policy_dp_imit_{dimension}D_{instance}I.pkl",
-                "wb",
-            ),
-        )
+    ppo_model = g_utils.train_load_model_imit(
+        policy_path=f"Environments/Damping/Policies/ppo_policy_dp_imit",
+        dimension=dimension,
+        instance=instance,
+        split=split,
+        p_class=p_class,
+        train_env=train_env,
+        max_evals=int(max_eps_steps * len(train_funcs) * train_repeats),
+        bc_policy=bc_trainer.policy,
+    )
 
     print("Evaluating the agent on the test functions...")
     results = g_utils.evaluate_agent(
@@ -102,4 +80,5 @@ def run(
     )
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
-    g_utils.save_results(results=results, policy=f"ppo_policy_dp_imit_{dimension}D_{instance}I")
+    p_class = p_class if split == "classes" else -1
+    g_utils.save_results(results=results, policy=f"ppo_policy_dp_imit_{dimension}D_{instance}I_{p_class}C")
