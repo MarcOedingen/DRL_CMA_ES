@@ -1,3 +1,4 @@
+import g_utils
 import gymnasium
 import numpy as np
 from collections import deque
@@ -5,12 +6,13 @@ from Environments.Mu_Effective.CMA_ES_ME import CMAES_ME
 
 
 class CMA_ES_ME(gymnasium.Env):
-    def __init__(self, objective_funcs, x_start, sigma):
+    def __init__(self, objective_funcs, x_start, sigma, reward_type):
         super(CMA_ES_ME, self).__init__()
         self.cma_es = None
         self.objetive_funcs = objective_funcs
         self.x_start = x_start
         self.sigma = sigma
+        self.reward_type = reward_type
         self.curr_index = 0
 
         self.h = 40
@@ -28,8 +30,9 @@ class CMA_ES_ME(gymnasium.Env):
         self.iteration = 0
         self.stop = False
         self._f_limit = np.power(10, 28)
+        self._f_targets = []
 
-        self._last_achieved = 0
+        self.last_achieved = 0
 
     def step(self, action):
         new_mueff = action[0]
@@ -40,12 +43,10 @@ class CMA_ES_ME(gymnasium.Env):
         fit = [self.objetive_funcs[self.curr_index](x) for x in X]
         self.cma_es.tell(X, fit)
 
-        self._last_achieved = np.min(fit)
-
-        # Calculate reward (Turn minimization into maximization)
-        reward = -np.log(
-            np.abs(np.min(fit) - self.objetive_funcs[self.curr_index].best_value())
-        )
+        self.last_achieved = np.min(fit)
+        reward = g_utils.calc_reward(optimum=self.objetive_funcs[self.curr_index].best_value(),
+                                     min_eval=self.last_achieved, reward_type=self.reward_type,
+                                     reward_targets=self._f_targets)
         reward = np.clip(reward, -self._f_limit, self._f_limit)
 
         # Check if the algorithm should stop
@@ -60,7 +61,7 @@ class CMA_ES_ME(gymnasium.Env):
                 np.log(
                     np.abs(
                         (
-                            self._last_achieved
+                            self.last_achieved
                             - self.hist_fit_vals[len(self.hist_fit_vals) - 1]
                         )
                     )
@@ -68,7 +69,7 @@ class CMA_ES_ME(gymnasium.Env):
                 -self._f_limit,
                 self._f_limit,
             )
-            self.hist_fit_vals.append(difference / np.log(np.abs(self._last_achieved)))
+            self.hist_fit_vals.append(difference)
             self.hist_mueff.append(self.curr_mueff)
 
         new_state = np.concatenate(
@@ -100,11 +101,12 @@ class CMA_ES_ME(gymnasium.Env):
             print(
                 f"{(self.curr_index / len(self.objetive_funcs) * 100):6.2f}% of training completed"
                 f" | {self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value():30.10f} optimum"
-                f" | {self._last_achieved:30.10f} achieved"
-                f" | {np.abs(self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value() - self._last_achieved):30.18f} difference"
+                f" | {self.last_achieved:30.10f} achieved"
+                f" | {np.abs(self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value() - self.last_achieved):30.18f} difference"
             )
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_mueff = deque(np.zeros(self.h), maxlen=self.h)
+        self._f_targets = g_utils.set_reward_targets(self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].best_value())
         x_start = (
             np.zeros(
                 self.objetive_funcs[

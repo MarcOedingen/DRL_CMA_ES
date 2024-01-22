@@ -68,7 +68,7 @@ def run(
         bc_trainer.train(n_epochs=10)
 
     ppo_model = g_utils.train_load_model_imit(
-        policy_path="Environments/Step_Size/Policies/ppo_policy_ss_imit",
+        policy_path=policy_path,
         dimension=dimension,
         instance=instance,
         split=split,

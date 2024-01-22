@@ -1,8 +1,6 @@
 import os
-import pickle
 import g_utils
 import numpy as np
-from stable_baselines3 import PPO
 from imitation.algorithms import bc
 from gymnasium.wrappers import TimeLimit
 from Environments.Mu_Effective.CMA_ES_ME_Env import CMA_ES_ME
@@ -12,6 +10,7 @@ from Environments.Mu_Effective.CMA_ES_ME import collect_expert_samples
 def run(
     dimension,
     x_start,
+    reward_type,
     sigma,
     instance,
     max_eps_steps,
@@ -35,7 +34,7 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_ME(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
+        CMA_ES_ME(objective_funcs=train_funcs, x_start=x_start, sigma=sigma, reward_type=reward_type),
         max_episode_steps=int(max_eps_steps),
     )
 
@@ -61,11 +60,13 @@ def run(
         rng=np.random.default_rng(42),
     )
 
-    print("Pre-training policy with expert samples...")
-    bc_trainer.train(n_epochs=10)
+    policy_path = "Environments/Mu_Effective/Policies/ppo_policy_me_imit"
+    if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.zip"):
+        print("Pre-training policy with expert samples...")
+        bc_trainer.train(n_epochs=10)
 
     ppo_model = g_utils.train_load_model_imit(
-        policy_path=f"Environments/Mu_Effective/Policies/ppo_policy_me_imit",
+        policy_path=policy_path,
         dimension=dimension,
         instance=instance,
         split=split,
@@ -81,6 +82,7 @@ def run(
         sigma=sigma,
         ppo_model=ppo_model,
         env_name="mu_effective",
+        reward_type=reward_type,
     )
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]

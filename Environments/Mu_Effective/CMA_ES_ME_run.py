@@ -1,8 +1,5 @@
-import os
-import pickle
 import g_utils
 import numpy as np
-from stable_baselines3 import PPO
 from gymnasium.wrappers import TimeLimit
 from Environments.Mu_Effective.CMA_ES_ME_Env import CMA_ES_ME
 
@@ -10,6 +7,7 @@ from Environments.Mu_Effective.CMA_ES_ME_Env import CMA_ES_ME
 def run(
     dimension,
     x_start,
+    reward_type,
     sigma,
     instance,
     max_eps_steps,
@@ -31,7 +29,7 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_ME(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
+        CMA_ES_ME(objective_funcs=train_funcs, x_start=x_start, sigma=sigma, reward_type=reward_type),
         max_episode_steps=int(max_eps_steps),
     )
 
@@ -51,6 +49,7 @@ def run(
         sigma=sigma,
         ppo_model=ppo_model,
         env_name="mu_effective",
+        reward_type=reward_type
     )
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]

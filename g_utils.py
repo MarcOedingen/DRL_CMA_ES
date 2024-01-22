@@ -22,6 +22,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 
 _reward_decay = 50 * np.exp(-0.5 * np.arange(50))
 
+
 class StopOnAllFunctionsEvaluated(BaseCallback):
     def __init__(self, verbose=0):
         super(StopOnAllFunctionsEvaluated, self).__init__(verbose)
@@ -41,7 +42,11 @@ def calc_reward(optimum, min_eval, reward_type, reward_targets):
     if reward_type == "log_opt":
         return -np.log(np.abs(min_eval - optimum))
     else:
-        return np.argwhere(reward_targets > min_eval)[-1][0] + 1 if min_eval < reward_targets[0] else 0
+        return (
+            np.argwhere(reward_targets > min_eval)[-1][0] + 1
+            if min_eval < reward_targets[0]
+            else 0
+        )
 
 
 def create_benchmark_functions(ids, dimensions, instances):
@@ -99,15 +104,15 @@ def get_functions(dimension, instance, split, p_class, n_functions=24, repeats=1
 
 
 def split_train_test(
-        dimension,
-        instance,
-        split,
-        p_class,
-        n_functions=24,
-        test_size=0.25,
-        train_repeats=10,
-        test_repeats=10,
-        random_state=42,
+    dimension,
+    instance,
+    split,
+    p_class,
+    n_functions=24,
+    test_size=0.25,
+    train_repeats=10,
+    test_repeats=10,
+    random_state=42,
 ):
     ids = (
         get_class_func_ids(p_class)
@@ -124,7 +129,7 @@ def split_train_test(
 
 
 def generate_splits(
-        dimension, instance, train_ids, test_ids, train_repeats, test_repeats
+    dimension, instance, train_ids, test_ids, train_repeats, test_repeats
 ):
     dim_choices = [2, 3, 5, 10, 20, 40]
     inst_choices = [i for i in range(1, 11)]
@@ -165,7 +170,7 @@ def _choose_or_repeat(choice, choices, size):
 
 
 def train_load_model(
-        policy_path, dimension, instance, split, p_class, train_env, max_evals
+    policy_path, dimension, instance, split, p_class, train_env, max_evals
 ):
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
     p_class = p_class if split == "classes" else -1
@@ -191,7 +196,7 @@ def train_load_model(
 
 
 def train_load_model_imit(
-        policy_path, dimension, instance, split, p_class, train_env, max_evals, bc_policy
+    policy_path, dimension, instance, split, p_class, train_env, max_evals, bc_policy
 ):
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
     p_class = p_class if split == "classes" else -1
@@ -226,24 +231,64 @@ def get_env(env_name, test_func, x_start, reward_type, sigma):
             sigma=sigma,
         )
     elif env_name == "decay_rate_cs":
-        env = CMA_ES_CS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        env = CMA_ES_CS(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     elif env_name == "decay_rate_cc":
-        env = CMA_ES_CC(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        env = CMA_ES_CC(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     elif env_name == "damping":
-        env = CMA_ES_DP(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        env = CMA_ES_DP(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     elif env_name == "learning_rate_c1":
-        env = CMA_ES_C1(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        env = CMA_ES_C1(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     elif env_name == "learning_rate_cm":
-        env = CMA_ES_CM(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        env = CMA_ES_CM(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     elif env_name == "mu_effective":
-        env = CMA_ES_ME(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        env = CMA_ES_ME(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     elif env_name == "h_sigma":
-        env = CMA_ES_HS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        env = CMA_ES_HS(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     elif env_name == "evolution_path_ps":
-        env = CMA_ES_PS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        env = CMA_ES_PS(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     else:
         raise NotImplementedError
-    return TimeLimit(env, max_episode_steps=int(1e3 * 40 ** 2))
+    return TimeLimit(env, max_episode_steps=int(1e3 * 40**2))
 
 
 def evaluate_agent(test_funcs, x_start, reward_type, sigma, ppo_model, env_name):
