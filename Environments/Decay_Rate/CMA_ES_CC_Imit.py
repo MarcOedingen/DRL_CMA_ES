@@ -12,6 +12,7 @@ from Environments.Decay_Rate.CMA_ES_CC import collect_expert_samples
 def run(
     dimension,
     x_start,
+    reward_type,
     sigma,
     instance,
     max_eps_steps,
@@ -35,7 +36,7 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_CC(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
+        CMA_ES_CC(objective_funcs=train_funcs, x_start=x_start, sigma=sigma, reward_type=reward_type),
         max_episode_steps=max_eps_steps,
     )
 
@@ -61,11 +62,13 @@ def run(
         rng=np.random.default_rng(42),
     )
 
-    print("Pre-training policy with expert samples...")
-    bc_trainer.train(n_epochs=10)
+    policy_path = "Environments/Decay_Rate/Policies/ppo_policy_cc_imit"
+    if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
+        print("Pre-training policy with expert samples...")
+        bc_trainer.train(n_epochs=10)
 
     ppo_model = g_utils.train_load_model_imit(
-        policy_path=f"Environments/Decay_Rate/Policies/ppo_policy_cc_imit",
+        policy_path=policy_path,
         dimension=dimension,
         instance=instance,
         split=split,
@@ -75,13 +78,13 @@ def run(
         bc_policy=bc_trainer.policy,
     )
 
-    print("Evaluating the agent on the test functions...")
     results = g_utils.evaluate_agent(
         test_funcs=test_funcs,
         x_start=x_start,
         sigma=sigma,
         ppo_model=ppo_model,
         env_name="decay_rate_cc",
+        reward_type=reward_type
     )
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]

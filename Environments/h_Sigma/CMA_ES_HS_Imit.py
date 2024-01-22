@@ -78,7 +78,6 @@ def run(
         bc_policy=bc_trainer.policy,
     )
 
-    print("Evaluating the agent on the test functions...")
     results = g_utils.evaluate_agent(
         test_funcs=test_funcs,
         x_start=x_start,
