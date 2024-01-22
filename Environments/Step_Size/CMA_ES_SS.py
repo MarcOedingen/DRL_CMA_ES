@@ -29,7 +29,7 @@ def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                 -f_limit,
                 f_limit,
             )
-            hist_fit_vals.append(difference / np.log(np.abs(f_best)))
+            hist_fit_vals.append(difference)
         hist_sigmas.append(curr_sigma)
         observations.append(
             np.concatenate(
