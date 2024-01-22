@@ -32,14 +32,14 @@ def main():
             "testing",
             "eval",
         ],
-        default="baseline",
+        default="step_size_imit",
     )
     parser.add_argument(
         "--dimension",
         type=int,
         help="The dimension of the problem",
         choices=[-1, 2, 3, 5, 10, 20, 40],
-        default=2,
+        default=10,
     )
     parser.add_argument(
         "--x_start",
@@ -53,9 +53,21 @@ def main():
         type=int,
         help="The instance of the problem",
         choices=[i for i in range(-1, 10 + 1) if i != 0],
-        default=-1,
+        default=2,
     )
-    parser.add_argument("--sigma", type=float, help="The initial sigma", default=0.5)
+    parser.add_argument(
+        "--reward_type",
+        type=str,
+        help="The reward function",
+        choices=["log_opt", "ecdf"],
+        default="ecdf"
+    )
+    parser.add_argument(
+        "--sigma",
+        type=float,
+        help="The initial sigma",
+        default=0.5
+    )
     parser.add_argument(
         "--policy",
         type=str,
@@ -145,6 +157,7 @@ def main():
         run_function(
             args.dimension,
             args.x_start,
+            args.reward_type,
             args.sigma,
             args.instance,
             args.max_episode_steps,

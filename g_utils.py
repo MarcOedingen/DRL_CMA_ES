@@ -20,6 +20,7 @@ from Environments.Evolution_Path.CMA_ES_PS_Env import CMA_ES_PS
 
 from stable_baselines3.common.callbacks import BaseCallback
 
+_reward_decay = 50 * np.exp(-0.5 * np.arange(50))
 
 class StopOnAllFunctionsEvaluated(BaseCallback):
     def __init__(self, verbose=0):
@@ -30,6 +31,17 @@ class StopOnAllFunctionsEvaluated(BaseCallback):
         if self.model.env.envs[0].get_wrapper_attr("stop"):
             return False
         return True
+
+
+def set_reward_targets(optimum):
+    return optimum + _reward_decay
+
+
+def calc_reward(optimum, min_eval, reward_type, reward_targets):
+    if reward_type == "log_opt":
+        return -np.log(np.abs(min_eval - optimum))
+    else:
+        return np.argwhere(reward_targets > min_eval)[-1][0] + 1 if min_eval < reward_targets[0] else 0
 
 
 def create_benchmark_functions(ids, dimensions, instances):
@@ -73,8 +85,18 @@ def get_functions(dimension, instance, split, p_class, n_functions=24, repeats=1
     )
     dim_choices = [2, 3, 5, 10, 20, 40]
     inst_choices = [i for i in range(1, 11)]
-    dimensions, instances = get_dim_inst(dimension=dimension, instance=instance, dim_choices=dim_choices, inst_choices=inst_choices, repeats=repeats, n_functions=len(ids))
-    return create_benchmark_functions(np.repeat(ids, repeats=repeats), dimensions, instances)
+    dimensions, instances = get_dim_inst(
+        dimension=dimension,
+        instance=instance,
+        dim_choices=dim_choices,
+        inst_choices=inst_choices,
+        repeats=repeats,
+        n_functions=len(ids),
+    )
+    return create_benchmark_functions(
+        np.repeat(ids, repeats=repeats), dimensions, instances
+    )
+
 
 def split_train_test(
         dimension,
@@ -195,9 +217,14 @@ def train_load_model_imit(
     return ppo_model
 
 
-def get_env(env_name, test_func, x_start, sigma):
+def get_env(env_name, test_func, x_start, reward_type, sigma):
     if env_name == "step_size":
-        env = CMA_ES_SS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
+        env = CMA_ES_SS(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     elif env_name == "decay_rate_cs":
         env = CMA_ES_CS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     elif env_name == "decay_rate_cc":
@@ -219,7 +246,7 @@ def get_env(env_name, test_func, x_start, sigma):
     return TimeLimit(env, max_episode_steps=int(1e3 * 40 ** 2))
 
 
-def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
+def evaluate_agent(test_funcs, x_start, reward_type, sigma, ppo_model, env_name):
     print("Evaluating the agent on the test functions...")
     groups = {}
     for index, test_func in enumerate(test_funcs):
@@ -237,6 +264,7 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
                 env_name=env_name,
                 test_func=test_funcs[index],
                 x_start=x_start,
+                reward_type=reward_type,
                 sigma=sigma,
             )
             obs, _ = eval_env.reset(verbose=0)
@@ -244,7 +272,13 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
             while not (terminated or truncated):
                 action, _states = ppo_model.predict(obs, deterministic=True)
                 obs, reward, terminated, truncated, info = eval_env.step(action)
-            grp_rewards[reward_index] = np.exp(-reward)
+            grp_rewards[reward_index] = (
+                np.exp(-reward)
+                if reward_type == "log_opt"
+                else np.abs(
+                    eval_env.unwrapped.last_achieved - test_funcs[index].best_value()
+                )
+            )
             reward_index += 1
         results.append(
             {

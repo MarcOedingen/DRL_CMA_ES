@@ -12,6 +12,7 @@ from Environments.Step_Size.CMA_ES_SS import collect_expert_samples
 def run(
     dimension,
     x_start,
+    reward_type,
     sigma,
     instance,
     max_eps_steps,
@@ -35,7 +36,7 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_SS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma),
+        CMA_ES_SS(objective_funcs=train_funcs, x_start=x_start, sigma=sigma, reward_type=reward_type),
         max_episode_steps=max_eps_steps,
     )
 
@@ -58,14 +59,16 @@ def run(
         observation_space=train_env.observation_space,
         action_space=train_env.action_space,
         demonstrations=transitions,
-        rng=np.random.default_rng(42),
+        rng=np.random.default_rng(seed=42),
     )
 
-    print("Pre-training policy with expert samples...")
-    bc_trainer.train(n_epochs=10)
+    policy_path = "Environments/Step_Size/Policies/bc_policy_ss_imit"
+    if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.zip"):
+        print("Pre-training policy with expert samples...")
+        bc_trainer.train(n_epochs=10)
 
     ppo_model = g_utils.train_load_model_imit(
-        policy_path=f"Environments/Step_Size/Policies/ppo_policy_ss_imit",
+        policy_path="Environments/Step_Size/Policies/ppo_policy_ss_imit",
         dimension=dimension,
         instance=instance,
         split=split,
@@ -79,6 +82,7 @@ def run(
         test_funcs=test_funcs,
         x_start=x_start,
         sigma=sigma,
+        reward_type=reward_type,
         ppo_model=ppo_model,
         env_name="step_size",
     )
