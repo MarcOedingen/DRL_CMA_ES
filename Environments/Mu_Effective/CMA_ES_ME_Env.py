@@ -9,7 +9,7 @@ class CMA_ES_ME(gymnasium.Env):
     def __init__(self, objective_funcs, x_start, sigma, reward_type):
         super(CMA_ES_ME, self).__init__()
         self.cma_es = None
-        self.objetive_funcs = objective_funcs
+        self.objective_funcs = objective_funcs
         self.x_start = x_start
         self.sigma = sigma
         self.reward_type = reward_type
@@ -40,18 +40,18 @@ class CMA_ES_ME(gymnasium.Env):
 
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
-        fit = [self.objetive_funcs[self.curr_index](x) for x in X]
+        fit = [self.objective_funcs[self.curr_index](x) for x in X]
         self.cma_es.tell(X, fit)
 
         self.last_achieved = np.min(fit)
-        reward = g_utils.calc_reward(optimum=self.objetive_funcs[self.curr_index].best_value(),
+        reward = g_utils.calc_reward(optimum=self.objective_funcs[self.curr_index].best_value(),
                                      min_eval=self.last_achieved, reward_type=self.reward_type,
                                      reward_targets=self._f_targets)
         reward = np.clip(reward, -self._f_limit, self._f_limit)
 
         # Check if the algorithm should stop
         # Terminated if all functions have been evaluated
-        terminated = self.stop = self.curr_index >= len(self.objetive_funcs)
+        terminated = self.stop = self.curr_index >= len(self.objective_funcs)
         # Truncated if the current function has been evaluated
         truncated = bool(self.cma_es.stop())
 
@@ -85,7 +85,7 @@ class CMA_ES_ME(gymnasium.Env):
         if truncated:
             self.curr_index += 1
 
-        if self.curr_index >= len(self.objetive_funcs):
+        if self.curr_index >= len(self.objective_funcs):
             self.stop = True
 
         # Update iteration
@@ -97,28 +97,28 @@ class CMA_ES_ME(gymnasium.Env):
         return new_state, reward, terminated, truncated, {}
 
     def reset(self, *, seed=None, options=None, verbose=1):
-        if verbose > 0 and len(self.objetive_funcs) > self.curr_index > 0:
+        if verbose > 0 and len(self.objective_funcs) > self.curr_index > 0:
             print(
-                f"{(self.curr_index / len(self.objetive_funcs) * 100):6.2f}% of training completed"
-                f" | {self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value():30.10f} optimum"
+                f"{(self.curr_index / len(self.objective_funcs) * 100):6.2f}% of training completed"
+                f" | {self.objective_funcs[self.curr_index % len(self.objective_funcs) - 1].best_value():30.10f} optimum"
                 f" | {self.last_achieved:30.10f} achieved"
-                f" | {np.abs(self.objetive_funcs[self.curr_index % len(self.objetive_funcs) - 1].best_value() - self.last_achieved):30.18f} difference"
+                f" | {np.abs(self.objective_funcs[self.curr_index % len(self.objective_funcs) - 1].best_value() - self.last_achieved):30.18f} difference"
             )
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_mueff = deque(np.zeros(self.h), maxlen=self.h)
-        self._f_targets = g_utils.set_reward_targets(self.objetive_funcs[self.curr_index % len(self.objetive_funcs)].best_value())
+        self._f_targets = g_utils.set_reward_targets(self.objective_funcs[self.curr_index % len(self.objective_funcs)].best_value())
         x_start = (
             np.zeros(
-                self.objetive_funcs[
-                    self.curr_index % len(self.objetive_funcs)
+                self.objective_funcs[
+                    self.curr_index % len(self.objective_funcs)
                 ].dimension
             )
             if self.x_start == 0
             else np.random.uniform(
                 low=-5,
                 high=5,
-                size=self.objetive_funcs[
-                    self.curr_index % len(self.objetive_funcs)
+                size=self.objective_funcs[
+                    self.curr_index % len(self.objective_funcs)
                 ].dimension,
             )
         )

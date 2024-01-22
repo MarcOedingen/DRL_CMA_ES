@@ -63,7 +63,7 @@ def run(
     )
 
     policy_path = "Environments/Step_Size/Policies/bc_policy_ss_imit"
-    if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.zip"):
+    if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
         print("Pre-training policy with expert samples...")
         bc_trainer.train(n_epochs=10)
 
