@@ -32,7 +32,7 @@ def main():
             "testing",
             "eval",
         ],
-        default="mu_effective_imit",
+        default="baseline",
     )
     parser.add_argument(
         "--dimension",
@@ -133,7 +133,7 @@ def main():
         module_path, function_name = get_module_and_function(args.algorithm)
         module = importlib.import_module(module_path)
         run_function = getattr(module, function_name)
-        run_function(args.dimension, args.x_start, args.sigma, args.instance)
+        run_function(args.dimension, args.x_start, args.sigma, args.instance, args.split, args.p_class, args.test_repeats)
     elif args.algorithm == "eval":
         module = importlib.import_module("Results.Eval_Results")
         run_function = getattr(module, "run")

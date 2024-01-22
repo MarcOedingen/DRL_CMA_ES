@@ -2,40 +2,60 @@ import cma
 import g_utils
 import numpy as np
 from tqdm import tqdm
-from cocoex.function import BenchmarkFunction
 
 
-def run(dimension, x_start, sigma, instance):
+def run(dimension, x_start, sigma, instance, split, p_class, test_repeats):
     print("---------------Running CMA-ES Optimized---------------")
-    results_CMA_ES = []
-    func_dimensions = (
-        np.repeat(dimension, 24) if dimension > 1 else np.random.randint(2, 40, 24)
-    )
-    func_instances = (
-        np.repeat(instance, 24)
-        if instance > 0
-        else np.random.randint(1, int(1e3) + 1, 24)
+    p_class = p_class if split == "classes" else -1
+    functions = g_utils.get_functions(
+        dimension=dimension,
+        instance=instance,
+        split=split,
+        p_class=p_class,
+        repeats=test_repeats,
     )
 
-    func_ids = []
-    for i in tqdm(range(1, 25)):
-        function = BenchmarkFunction(
-            "bbob", i, int(func_dimensions[i - 1]), int(func_instances[i - 1])
-        )
-        func_ids.append(function.id)
-        _x_start = (
-            np.zeros(func_dimensions[i - 1])
-            if x_start == 0
-            else np.random.uniform(-5, 5, func_dimensions[i - 1])
-        )
-        es = cma.CMAEvolutionStrategy(_x_start, sigma, {"verbose": -9})
-        es.optimize(function)
-        results_CMA_ES.append(abs(function(es.best.x) - function.best_value()))
+    results = []
+    groups = {}
+    for index, test_func in enumerate(functions):
+        key = test_func.id
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(index)
 
-    g_utils.print_pretty_table_simp(
-        func_dimensions=func_dimensions,
-        func_instances=func_instances,
-        func_ids=func_ids,
-        results=results_CMA_ES,
-    )
-    print(f"Mean: {np.mean(results_CMA_ES)} +/- {np.std(results_CMA_ES)}")
+    for key, indices in tqdm(groups.items()):
+        grp_rewards = np.zeros(len(indices))
+        reward_index = 0
+        for index in indices:
+            test_func = functions[index]
+            _x_start = (
+                np.random.uniform(
+                    low=-5,
+                    high=5,
+                    size=test_func.dimension,
+                )
+                if x_start == -1
+                else np.zeros(test_func.dimension)
+            )
+            es = cma.CMAEvolutionStrategy(_x_start, sigma, {"verbose": -9})
+            es.optimize(test_func)
+            grp_rewards[reward_index] = np.abs(
+                test_func.best_value() - test_func(es.best.x)
+            )
+            reward_index += 1
+        results.append(
+            {
+                "id": key,
+                "stats": np.array(
+                    [
+                        np.mean(grp_rewards),
+                        np.std(grp_rewards),
+                        np.max(grp_rewards),
+                        np.min(grp_rewards),
+                    ]
+                ),
+            }
+        )
+    g_utils.print_pretty_table(results=results)
+    means = [row["stats"][0] for row in results]
+    print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")

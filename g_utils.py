@@ -42,20 +42,6 @@ def create_benchmark_functions(ids, dimensions, instances):
     return funcs
 
 
-def get_func_dim_inst(dimension, instance, dim_choices, inst_choices, n_funcs=24):
-    func_dimensions = (
-        np.repeat(dimension, n_funcs)
-        if dimension > 1
-        else np.random.choice(dim_choices, n_funcs)
-    )
-    func_instances = (
-        np.repeat(instance, n_funcs)
-        if instance > 0
-        else np.random.choice(inst_choices, n_funcs)
-    )
-    return func_dimensions, func_instances
-
-
 def get_class_func_ids(_class):
     class_range = {
         1: (1, 5),
@@ -67,16 +53,39 @@ def get_class_func_ids(_class):
     return np.arange(class_range[_class][0], class_range[_class][1] + 1)
 
 
+def get_dim_inst(dimension, instance, dim_choices, inst_choices, repeats, n_functions):
+    if dimension < 1:
+        dimensions = np.random.choice(dim_choices, size=n_functions * repeats)
+    else:
+        dimensions = np.repeat(np.array([dimension]), repeats=n_functions * repeats)
+    if instance < 1:
+        instances = np.random.choice(inst_choices, size=n_functions * repeats)
+    else:
+        instances = np.repeat(np.array([instance]), repeats=n_functions * repeats)
+    return dimensions, instances
+
+
+def get_functions(dimension, instance, split, p_class, n_functions=24, repeats=10):
+    ids = (
+        get_class_func_ids(p_class)
+        if split == "classes"
+        else np.arange(1, n_functions + 1)
+    )
+    dim_choices = [2, 3, 5, 10, 20, 40]
+    inst_choices = [i for i in range(1, 11)]
+    dimensions, instances = get_dim_inst(dimension=dimension, instance=instance, dim_choices=dim_choices, inst_choices=inst_choices, repeats=repeats, n_functions=len(ids))
+    return create_benchmark_functions(np.repeat(ids, repeats=repeats), dimensions, instances)
+
 def split_train_test(
-    dimension,
-    instance,
-    split,
-    p_class,
-    n_functions=24,
-    test_size=0.25,
-    train_repeats=10,
-    test_repeats=10,
-    random_state=42,
+        dimension,
+        instance,
+        split,
+        p_class,
+        n_functions=24,
+        test_size=0.25,
+        train_repeats=10,
+        test_repeats=10,
+        random_state=42,
 ):
     ids = (
         get_class_func_ids(p_class)
@@ -93,7 +102,7 @@ def split_train_test(
 
 
 def generate_splits(
-    dimension, instance, train_ids, test_ids, train_repeats, test_repeats
+        dimension, instance, train_ids, test_ids, train_repeats, test_repeats
 ):
     dim_choices = [2, 3, 5, 10, 20, 40]
     inst_choices = [i for i in range(1, 11)]
@@ -134,7 +143,7 @@ def _choose_or_repeat(choice, choices, size):
 
 
 def train_load_model(
-    policy_path, dimension, instance, split, p_class, train_env, max_evals
+        policy_path, dimension, instance, split, p_class, train_env, max_evals
 ):
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
     p_class = p_class if split == "classes" else -1
@@ -160,7 +169,7 @@ def train_load_model(
 
 
 def train_load_model_imit(
-    policy_path, dimension, instance, split, p_class, train_env, max_evals, bc_policy
+        policy_path, dimension, instance, split, p_class, train_env, max_evals, bc_policy
 ):
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
     p_class = p_class if split == "classes" else -1
@@ -207,7 +216,7 @@ def get_env(env_name, test_func, x_start, sigma):
         env = CMA_ES_PS(objective_funcs=[test_func], x_start=x_start, sigma=sigma)
     else:
         raise NotImplementedError
-    return TimeLimit(env, max_episode_steps=int(1e3 * 40**2))
+    return TimeLimit(env, max_episode_steps=int(1e3 * 40 ** 2))
 
 
 def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
@@ -251,26 +260,6 @@ def evaluate_agent(test_funcs, x_start, sigma, ppo_model, env_name):
             }
         )
     return results
-
-
-def print_pretty_table_simp(func_dimensions, func_instances, func_ids, results):
-    table = PrettyTable()
-    table.field_names = [
-        "Function",
-        "Dimensions",
-        "Instance",
-        "Difference |f(x_best) - f(x_opt)|",
-    ]
-    for i in range(len(results)):
-        table.add_row(
-            [
-                func_ids[i],
-                func_dimensions[i],
-                func_instances[i],
-                f"{results[i]:.18f}",
-            ]
-        )
-    print(table)
 
 
 def print_pretty_table(results):
