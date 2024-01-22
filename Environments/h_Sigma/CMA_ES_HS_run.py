@@ -45,9 +45,7 @@ def run(
         ppo_model=ppo_model,
         env_name="h_sigma",
     )
-    g_utils.print_pretty_table(
-        results=results,
-    )
+    g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
     p_class = p_class if split == "classes" else -1
