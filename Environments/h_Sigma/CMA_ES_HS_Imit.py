@@ -23,7 +23,7 @@ def run(
     seed,
 ):
     print(
-        "---------------Running imitation learning for learning-rate (c1) adaptation---------------"
+        "---------------Running imitation learning for Heaviside function (h_sigma) adaptation---------------"
     )
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,

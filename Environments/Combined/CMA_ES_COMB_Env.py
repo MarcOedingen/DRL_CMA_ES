@@ -2,12 +2,12 @@ import g_utils
 import gymnasium
 import numpy as np
 from collections import deque
-from Environments.Step_Size.CMA_ES_SS import CMAES_SS
+from Environments.Combined.CMA_ES_COMB import CMAES_COMB
 
 
-class CMA_ES_SS(gymnasium.Env):
+class CMA_ES_COMB(gymnasium.Env):
     def __init__(self, objective_funcs, x_start, sigma, reward_type):
-        super(CMA_ES_SS, self).__init__()
+        super(CMA_ES_COMB, self).__init__()
         self.cma_es = None
         self.objective_funcs = objective_funcs
         self.x_start = x_start
@@ -16,15 +16,16 @@ class CMA_ES_SS(gymnasium.Env):
         self.curr_index = 0
 
         self.h = 40
+        self.curr_h_sigma = 0
         self.curr_sigma = sigma
-        self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
-        self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
+        self.curr_c1, self.curr_cc, self.curr_chiN, self.curr_cmu, self.curr_cs, self.curr_mueff = [0] * 6
+        self.hist_c1, self.hist_cc, self.hist_ChiN, self.hist_cmu, self.hist_cs, self.hist_fit_vals, self.hist_h_sigma, self.hist_mueff, self.hist_sigma = [deque(np.zeros(self.h), maxlen=self.h)] * 9
 
         self.action_space = gymnasium.spaces.Box(
-            low=5e-2, high=10, shape=(1,), dtype=np.float64
+            low=1e-10, high=10, shape=(8,), dtype=np.float64
         )
         self.observation_space = gymnasium.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(2 + 2 * self.h,), dtype=np.float64
+            low=-np.inf, high=np.inf, shape=(15 + 9 * self.h,), dtype=np.float64
         )
 
         self.iteration = 0
@@ -35,12 +36,12 @@ class CMA_ES_SS(gymnasium.Env):
         self.last_achieved = 0
 
     def step(self, action):
-        new_sigma = action[0]
+        new_c1, new_cc, new_ChiN, new_cmu, new_cs, new_mueff, new_sigma, new_h_sig = action
 
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
         fit = [self.objective_funcs[self.curr_index](x) for x in X]
-        expert_sigma, ps = self.cma_es.tell(X, fit)
+        expert_sigma, expert_h_sigma, pc, ps, count_eval = self.cma_es.tell(X, fit)
 
         self.last_achieved = np.min(fit)
 
@@ -73,15 +74,33 @@ class CMA_ES_SS(gymnasium.Env):
                 -self._f_limit,
                 self._f_limit,
             )
+            self.hist_c1.append(self.curr_c1)
+            self.hist_cc.append(self.curr_cc)
+            self.hist_ChiN.append(self.curr_chiN)
+            self.hist_cmu.append(self.curr_cmu)
+            self.hist_cs.append(self.curr_cs)
             self.hist_fit_vals.append(difference)
-            self.hist_sigmas.append(self.curr_sigma)
+            self.hist_h_sigma.append(self.curr_h_sigma)
+            self.hist_mueff.append(self.curr_mueff)
+            self.hist_sigma.append(self.curr_sigma)
 
         new_state = np.concatenate(
             [
+                np.array([new_c1]),
+                np.array([new_cc]),
+                np.array([new_ChiN]),
+                np.array([new_cmu]),
+                np.array([new_cs]),
+                np.array([new_mueff]),
                 np.array([new_sigma]),
-                np.array([np.linalg.norm(ps) / self.cma_es.params.chiN - 1]),
-                np.array(self.hist_fit_vals),
-                np.array(self.hist_sigmas),
+                np.array([self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension]),
+                np.array([np.linalg.norm(pc)]),
+                np.array([np.linalg.norm(ps)]),
+                np.array([np.power(np.sum(self.cma_es.params.weights), 2)]),
+                np.array([np.sum(np.power(self.cma_es.params.weights, 2))]),
+                count_eval,
+                np.array([np.linalg.norm(ps) / new_ChiN - 1]),
+                #### TO BE CONTINUED....
             ]
         )
 
@@ -108,8 +127,7 @@ class CMA_ES_SS(gymnasium.Env):
                 f" | {self.last_achieved:30.10f} achieved"
                 f" | {np.abs(self.objective_funcs[self.curr_index % len(self.objective_funcs) - 1].best_value() - self.last_achieved):30.18f} difference"
             )
-        self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
-        self.hist_sigmas = deque(np.zeros(self.h), maxlen=self.h)
+        self.hist_c1, self.hist_cc, self.hist_ChiN, self.hist_cmu, self.hist_cs, self.hist_fit_vals, self.hist_h_sigma, self.hist_mueff, self.hist_sigma = [deque(np.zeros(self.h),maxlen=self.h)] * 9
         self._f_targets = g_utils.set_reward_targets(
             self.objective_funcs[
                 self.curr_index % len(self.objective_funcs)
@@ -130,8 +148,9 @@ class CMA_ES_SS(gymnasium.Env):
                 ].dimension,
             )
         )
-        self.cma_es = CMAES_SS(x_start, self.sigma)
+        self.cma_es = CMAES_COMB(x_start, self.sigma)
         self.curr_sigma = self.sigma
+        self.curr_h_sigma = self.cma_es.h_sig
         self.iteration = 0
         return (
             np.concatenate(
