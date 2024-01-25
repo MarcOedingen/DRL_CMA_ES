@@ -5,17 +5,17 @@ from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
-def run_CMAES_DP(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
-    es = CMAES_DP(x_start, sigma)
-    start_state = np.array([es.params.damps, sigma])
+def run_CMAES_CN(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
+    es = CMAES_CN(x_start, sigma)
+    start_state = np.array([es.params.chiN, objective_fct.dimension])
     observations, actions, dones = [np.hstack((start_state, np.zeros(80)))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
-    hist_damps = deque(np.zeros(h), maxlen=h)
+    hist_chiN = deque(np.zeros(h), maxlen=h)
     iteration = 0
     while not es.stop():
         X = es.ask()
         fit = [objective_fct(x) for x in X]
-        sigma = es.tell(X, fit)
+        es.tell(X, fit)
         f_best = np.min(fit)
         if iteration > 0:
             difference = np.clip(
@@ -24,18 +24,18 @@ def run_CMAES_DP(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                 f_limit,
             )
             hist_fit_vals.append(difference)
-            hist_damps.append(es.params.damps)
+            hist_chiN.append(es.params.chiN)
         observations.append(
             np.concatenate(
                 [
-                    np.array([es.params.damps]),
-                    np.array([sigma]),
+                    np.array([es.params.chiN]),
+                    np.array([objective_fct.dimension]),
                     np.array(hist_fit_vals),
-                    np.array(hist_damps),
+                    np.array(hist_chiN),
                 ]
             )
         )
-        actions.append(es.params.damps)
+        actions.append(es.params.chiN)
         dones.append(False)
         iteration += 1
     dones[-1] = True
@@ -47,10 +47,10 @@ def collect_expert_samples(
 ):
     p_class = p_class if split == "classes" else -1
     if os.path.isfile(
-        f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I_{p_class}C.npz"
+        f"Environments/ChiN/Samples/CMA_ES_CN_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     ):
         data = np.load(
-            f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I_{p_class}C.npz"
+            f"Environments/ChiN/Samples/CMA_ES_CN_Samples_{dimension}D_{instance}I_{p_class}C.npz"
         )
         return data
     observations, actions, dones = [], [], []
@@ -60,7 +60,7 @@ def collect_expert_samples(
             if x_start == 0
             else np.random.uniform(-5, 5, function.dimension)
         )
-        obs, act, done = run_CMAES_DP(
+        obs, act, done = run_CMAES_CN(
             objective_fct=function,
             x_start=_x_start,
             sigma=sigma,
@@ -69,17 +69,17 @@ def collect_expert_samples(
         actions.extend(act)
         dones.extend(done)
     np.savez(
-        f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I_{p_class}C.npz",
+        f"Environments/ChiN/Samples/CMA_ES_CN_Samples_{dimension}D_{instance}I_{p_class}C.npz",
         observations=observations,
         actions=actions,
         dones=dones,
     )
     return np.load(
-        f"Environments/Damping/Samples/CMA_ES_DP_Samples_{dimension}D_{instance}I_{p_class}C.npz"
+        f"Environments/ChiN/Samples/CMA_ES_CN_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     )
 
 
-class CMAES_DP:
+class CMAES_CN:
     def __init__(self, x_start, sigma):
         N = len(x_start)
         self.params = CMAESParameters(N)
@@ -115,6 +115,7 @@ class CMAES_DP:
 
         arx = arx[np.argsort(fit_vals)]
         self.fit_vals = np.sort(fit_vals)
+        self.fit_vals = np.clip(self.fit_vals, -np.power(10, 28), np.power(10, 28))
 
         self.x_mean = np.sum(
             arx[0 : self.params.mu] * self.params.weights[: self.params.mu, None],
@@ -149,8 +150,6 @@ class CMAES_DP:
             (self.params.cs / self.params.damps)
             * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
-
-        return self.sigma
 
     def stop(self):
         res = {}

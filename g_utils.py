@@ -8,6 +8,7 @@ from gymnasium.wrappers import TimeLimit
 from imitation.data.types import Transitions
 from cocoex.function import BenchmarkFunction
 from sklearn.model_selection import train_test_split
+from Environments.ChiN.CMA_ES_CN_Env import CMA_ES_CN
 from Environments.h_Sigma.CMA_ES_HS_Env import CMA_ES_HS
 from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
@@ -275,6 +276,13 @@ def get_env(env_name, test_func, x_start, reward_type, sigma):
         )
     elif env_name == "h_sigma":
         env = CMA_ES_HS(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
+    elif env_name == "chin":
+        env = CMA_ES_CN(
             objective_funcs=[test_func],
             x_start=x_start,
             reward_type=reward_type,

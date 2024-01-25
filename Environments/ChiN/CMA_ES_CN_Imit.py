@@ -1,13 +1,10 @@
 import os
-import pickle
 import g_utils
 import numpy as np
-from stable_baselines3 import PPO
 from imitation.algorithms import bc
 from gymnasium.wrappers import TimeLimit
-from imitation.data.types import Transitions
-from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
-from Environments.Damping.CMA_ES_DP import collect_expert_samples
+from Environments.ChiN.CMA_ES_CN_Env import CMA_ES_CN
+from Environments.ChiN.CMA_ES_CN import collect_expert_samples
 
 
 def run(
@@ -24,7 +21,7 @@ def run(
     seed,
 ):
     print(
-        "---------------Running imitation learning for damping (dp) adaptation---------------"
+        "---------------Running imitation learning for ChiN adaptation---------------"
     )
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,
@@ -37,7 +34,7 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_DP(
+        CMA_ES_CN(
             objective_funcs=train_funcs,
             x_start=x_start,
             sigma=sigma,
@@ -67,7 +64,7 @@ def run(
         demonstrations=transitions,
         rng=np.random.default_rng(42),
     )
-    policy_path = "Environments/Damping/Policies/ppo_policy_dp_imit"
+    policy_path = "Environments/ChiN/Policies/ppo_policy_cn_imit"
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
         print("Pre-training policy with expert samples...")
         bc_trainer.train(n_epochs=10)
@@ -88,7 +85,7 @@ def run(
         x_start=x_start,
         sigma=sigma,
         ppo_model=ppo_model,
-        env_name="damping",
+        env_name="chin",
         reward_type=reward_type,
     )
     g_utils.print_pretty_table(results=results)
@@ -97,5 +94,5 @@ def run(
     p_class = p_class if split == "classes" else -1
     g_utils.save_results(
         results=results,
-        policy=f"ppo_policy_dp_imit_{dimension}D_{instance}I_{p_class}C",
+        policy=f"ppo_policy_cn_imit_{dimension}D_{instance}I_{p_class}C",
     )
