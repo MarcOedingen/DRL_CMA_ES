@@ -13,6 +13,7 @@ def main():
             "optimized",
             "step_size",
             "step_size_imit",
+            "step_size_imit_iter",
             "decay_rate_cs",
             "decay_rate_cs_imit",
             "decay_rate_cc",
@@ -32,14 +33,14 @@ def main():
             "testing",
             "eval",
         ],
-        default="step_size_imit",
+        default="step_size_imit_iter",
     )
     parser.add_argument(
         "--dimension",
         type=int,
         help="The dimension of the problem",
         choices=[-1, 2, 3, 5, 10, 20, 40],
-        default=10,
+        default=2,
     )
     parser.add_argument(
         "--x_start",
@@ -178,6 +179,7 @@ def get_module_and_function(algorithm):
         "optimized": ("Optimized.CMA_ES_Optimized", "run"),
         "step_size": ("Environments.Step_Size.CMA_ES_SS_run", "run"),
         "step_size_imit": ("Environments.Step_Size.CMA_ES_SS_Imit", "run"),
+        "step_size_imit_iter": ("Environments.Step_Size.CMA_ES_SS_Imit_Iter", "run"),
         "decay_rate_cs": ("Environments.Decay_Rate.CMA_ES_CS_run", "run"),
         "decay_rate_cs_imit": ("Environments.Decay_Rate.CMA_ES_CS_Imit", "run"),
         "decay_rate_cc": ("Environments.Decay_Rate.CMA_ES_CC_run", "run"),

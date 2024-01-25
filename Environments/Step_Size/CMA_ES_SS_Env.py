@@ -74,7 +74,7 @@ class CMA_ES_SS(gymnasium.Env):
                 self._f_limit,
             )
             self.hist_fit_vals.append(difference)
-            self.hist_sigmas.append(self.curr_sigma)
+        self.hist_sigmas.append(self.curr_sigma)
 
         new_state = np.concatenate(
             [

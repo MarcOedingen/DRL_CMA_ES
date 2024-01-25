@@ -30,6 +30,7 @@ class StopOnAllFunctionsEvaluated(BaseCallback):
 
     def _on_step(self) -> bool:
         if self.model.env.envs[0].get_wrapper_attr("stop"):
+            print("All functions have been evaluated. Stopping the training...")
             return False
         return True
 
