@@ -14,6 +14,7 @@ from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
+from Environments.Combined.CMA_ES_COMB_Env import CMA_ES_COMB
 from Environments.Mu_Effective.CMA_ES_ME_Env import CMA_ES_ME
 from Environments.Learning_Rate.CMA_ES_C1_Env import CMA_ES_C1
 from Environments.Learning_Rate.CMA_ES_CM_Env import CMA_ES_CM
@@ -288,11 +289,17 @@ def get_env(env_name, test_func, x_start, reward_type, sigma):
             reward_type=reward_type,
             sigma=sigma,
         )
+    elif env_name == "combined":
+        env = CMA_ES_COMB(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
     elif env_name == "evolution_path_ps":
         env = CMA_ES_PS(
             objective_funcs=[test_func],
             x_start=x_start,
-            reward_type=reward_type,
             sigma=sigma,
         )
     else:

@@ -23,7 +23,9 @@ def run_CMAES_HS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     while not es.stop():
         X = es.ask()
         fit = [objective_fct(x) for x in X]
-        ps, count_eval, new_sigma, new_h_sig = es.tell(X, fit)
+        new_h_sig, x_old, arx = es.tell(X, fit)
+        es.h_sig = 1 if new_h_sig else 0
+        ps, count_eval, new_sigma = es.tell2(x_old, arx)
         f_best = np.min(fit)
         if iteration > 0:
             difference = np.clip(
@@ -46,7 +48,7 @@ def run_CMAES_HS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
             )
         )
         actions.append(new_h_sig)
-        es.h_sig = new_h_sig
+        curr_sigma, curr_h_sig = new_sigma, new_h_sig
         dones.append(False)
         iteration += 1
     dones[-1] = True
@@ -142,6 +144,9 @@ class CMAES_HS:
         expert_h_sig = np.linalg.norm(self.ps) / np.sqrt(
             1 - (1 - self.params.cs) ** (2 * self.count_eval / self.params.lam)
         ) / self.params.chiN < 1.4 + 2 / (N + 1)
+        return expert_h_sig, x_old, arx
+
+    def tell2(self, x_old, arx):
         self.pc = (1 - self.params.cc) * self.pc + self.h_sig * np.sqrt(
             self.params.cc * (2 - self.params.cc) * self.params.mueff
         ) * (self.x_mean - x_old) / self.sigma
@@ -164,7 +169,7 @@ class CMAES_HS:
             * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
 
-        return self.ps, self.count_eval, self.sigma, expert_h_sig
+        return self.ps, self.count_eval, self.sigma
 
     def stop(self):
         res = {}

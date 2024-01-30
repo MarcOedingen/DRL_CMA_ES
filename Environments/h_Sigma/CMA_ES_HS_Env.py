@@ -41,7 +41,8 @@ class CMA_ES_HS(gymnasium.Env):
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
         fit = [self.objective_funcs[self.curr_index](x) for x in X]
-        ps, count_eval, new_sigma, _ = self.cma_es.tell(X, fit)
+        expert_h_sigma, old_x, arx = self.cma_es.tell(X, fit)
+        ps, count_eval, new_sigma = self.cma_es.tell2(old_x, arx)
 
         self.last_achieved = np.min(fit)
 

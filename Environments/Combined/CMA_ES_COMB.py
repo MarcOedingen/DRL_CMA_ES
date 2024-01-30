@@ -11,17 +11,21 @@ def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)
                             sigma, objective_fct.dimension, np.linalg.norm(es.pc), np.linalg.norm(es.ps),
                             np.power(np.sum(es.params.weights), 2), np.sum(np.power(es.params.weights, 2))])
     observations, actions, dones = (
-        [np.hstack((start_state, np.zeros(int(9 * h) + 3)))],
+        [np.hstack((start_state, np.zeros(h + 3)))],
         [],
         [],
     )
-    hist_c1, hist_cc, hist_ChiN, hist_cmu, hist_cs, hist_fit_vals, hist_h_sigma, hist_mueff, hist_sigmas = [deque(np.zeros(h), maxlen=h)] * 9
+    #hist_c1, hist_cc, hist_ChiN, hist_cmu, hist_cs, hist_fit_vals, hist_h_sigma, hist_mueff, hist_sigmas = [deque(np.zeros(h), maxlen=h)] * 9
+    hist_fit_vals = deque(np.zeros(h), maxlen=h)
     iteration = 0
-    curr_h_sig, curr_sigma = es.h_sig, sigma
+    """curr_h_sig, curr_sigma = es.h_sig, sigma"""
     while not es.stop():
         X = es.ask()
         fit = [objective_fct(x) for x in X]
-        new_sigma, new_h_sig, pc, ps, count_eval = es.tell(X, fit)
+        new_h_sig, x_old, arx = es.tell(X, fit)
+        new_h_sig = 1 if new_h_sig else 0
+        es.h_sig = new_h_sig
+        new_sigma, pc, ps, count_eval = es.tell2(x_old, arx)
         es.sigma = new_sigma
         f_best = np.min(fit)
         if iteration > 0:
@@ -30,15 +34,15 @@ def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)
                 -f_limit,
                 f_limit,
             )
-            hist_c1.append(es.params.c1)
+            hist_fit_vals.append(difference)
+            """hist_c1.append(es.params.c1)
             hist_cc.append(es.params.cc)
             hist_ChiN.append(es.params.chiN)
             hist_cmu.append(es.params.cmu)
             hist_cs.append(es.params.cs)
-            hist_fit_vals.append(difference)
             hist_h_sigma.append(curr_h_sig)
             hist_mueff.append(es.params.mueff)
-            hist_sigmas.append(curr_sigma)
+            hist_sigmas.append(curr_sigma)"""
         observations.append(
             np.concatenate(
                 [
@@ -54,23 +58,17 @@ def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)
                     np.array([np.linalg.norm(ps)]),
                     np.array([np.power(np.sum(es.params.weights), 2)]),
                     np.array([np.sum(np.power(es.params.weights, 2))]),
-                    np.zeros(3),
-                    np.array(hist_c1),
-                    np.array(hist_cc),
-                    np.array(hist_ChiN),
-                    np.array(hist_cmu),
-                    np.array(hist_cs),
-                    np.array(hist_fit_vals),
-                    np.array(hist_h_sigma),
-                    np.array(hist_mueff),
-                    np.array(hist_sigmas)
+                    np.array([count_eval]),
+                    np.array([new_h_sig]),
+                    np.array([np.linalg.norm(ps) / es.params.chiN - 1]),
+                    np.array(hist_fit_vals)
                 ]
             )
         )
         actions.append([es.params.c1, es.params.cc, es.params.chiN, es.params.cmu, es.params.cs, es.params.mueff,
                         new_sigma, new_h_sig])
-        curr_sigma = new_sigma
-        curr_h_sig = new_h_sig
+        """curr_sigma = new_sigma
+        curr_h_sig = new_h_sig"""
         dones.append(False)
         iteration += 1
     dones[-1] = True
@@ -165,6 +163,9 @@ class CMAES_COMB:
         expert_h_sig = np.linalg.norm(self.ps) / np.sqrt(
             1 - (1 - self.params.cs) ** (2 * self.count_eval / self.params.lam)
         ) / self.params.chiN < 1.4 + 2 / (N + 1)
+        return expert_h_sig, x_old, arx
+
+    def tell2(self, x_old, arx):
         self.pc = (1 - self.params.cc) * self.pc + self.h_sig * np.sqrt(
             self.params.cc * (2 - self.params.cc) * self.params.mueff
         ) * (self.x_mean - x_old) / self.sigma
@@ -187,7 +188,7 @@ class CMAES_COMB:
             * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
 
-        return expert_sigma, expert_h_sig, self.pc, self.ps, self.count_eval
+        return expert_sigma, self.pc, self.ps, self.count_eval
 
     def stop(self):
         res = {}
