@@ -34,10 +34,11 @@ def main():
             "comb_imit",
             "evolution_path_ps",
             "evolution_path_ps_imit",
+            "optuna",
             "testing",
             "eval",
         ],
-        default="comb_imit",
+        default="optuna",
     )
     parser.add_argument(
         "--dimension",
@@ -202,6 +203,7 @@ def get_module_and_function(algorithm):
         "chi_n_imit": ("Environments.ChiN.CMA_ES_CN_Imit", "run"),
         "comb": ("Environments.Combined.CMA_ES_COMB", "run"),
         "comb_imit": ("Environments.Combined.CMA_ES_COMB_Imit", "run"),
+        "optuna" : ("Optuna.CMA_ES_Optuna", "run"),
         "evolution_path_ps": ("Environments.Evolution_Path.CMA_ES_PS_run", "run"),
         "evolution_path_ps_imit": ("Environments.Evolution_Path.CMA_ES_PS_Imit", "run"),
         "eval": ("Results.Eval_Results", "run"),

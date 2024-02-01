@@ -10,13 +10,16 @@ def runCMAES(objective_fct, x_start, sigma):
         X = es.ask()
         fit = [objective_fct(x) for x in X]
         es.tell(X, fit)
-    return es.x_mean, es
+    return es.fit_vals[0], es
 
 
 class CMAES:
-    def __init__(self, x_start, sigma):
+    def __init__(self, x_start, sigma, parameters={}):
         N = len(x_start)
         self.params = CMAESParameters(N)
+        # If params is not empty set the parameters
+        if parameters:
+            self.params.set_params(params=parameters)
         self.max_f_evals = 1e3 * N**2
 
         # initializing dynamic state variables
@@ -143,9 +146,9 @@ def run(dimension, x_start, sigma, instance, split, p_class, test_repeats):
                 if x_start == -1
                 else np.zeros(test_func.dimension)
             )
-            x_min = runCMAES(objective_fct=test_func, x_start=_x_start, sigma=sigma)[0]
+            f_min = runCMAES(objective_fct=test_func, x_start=_x_start, sigma=sigma)[0]
             grp_rewards[reward_index] = np.abs(
-                test_func.best_value() - test_func(x_min)
+                test_func.best_value() - f_min
             )
             reward_index += 1
         results.append(
