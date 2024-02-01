@@ -4,6 +4,7 @@ import g_utils
 import numpy as np
 from tqdm import tqdm
 from Baseline.CMA_ES_Baseline import CMAES
+from Parameters.CMA_ES_Parameters import CMAESParameters
 
 def run(
     dimension,
@@ -65,6 +66,19 @@ def run(
             return -np.inf
 
     study = optuna.create_study(direction="maximize")
+    baseline_parameters = CMAESParameters(dimension)
+    for i in range(10):
+        study.enqueue_trial(
+            {
+                "chiN": baseline_parameters.chiN,
+                "mu_eff": baseline_parameters.mueff,
+                "cc": baseline_parameters.cc,
+                "cs": baseline_parameters.cs,
+                "c1": baseline_parameters.c1,
+                "c_mu": baseline_parameters.cmu,
+                "damps": baseline_parameters.damps,
+            }
+        )
     study.optimize(objective, n_trials=100, n_jobs=1)
 
     random_best_param = np.random.choice(np.where(np.array([trial.values[0] for trial in study.trials]) == study.best_value)[0])
