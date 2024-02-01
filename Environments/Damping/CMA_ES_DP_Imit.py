@@ -1,11 +1,8 @@
 import os
-import pickle
 import g_utils
 import numpy as np
-from stable_baselines3 import PPO
 from imitation.algorithms import bc
 from gymnasium.wrappers import TimeLimit
-from imitation.data.types import Transitions
 from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
 from Environments.Damping.CMA_ES_DP import collect_expert_samples
 
