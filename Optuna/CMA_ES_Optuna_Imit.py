@@ -85,7 +85,7 @@ def run(
     best_params = study.trials[random_best_param].params
 
     np.savez(
-        f"Optuna/opt_params_{dimension}D_{instance}I_{p_class}C.npz",
+        f"Optuna/opt_imit_params_{dimension}D_{instance}I_{p_class}C.npz",
         **best_params,
     )
 
