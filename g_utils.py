@@ -44,12 +44,14 @@ def set_reward_targets(optimum):
 def calc_reward(optimum, min_eval, reward_type, reward_targets):
     if reward_type == "log_opt":
         return -np.log(np.abs(min_eval - optimum))
-    else:
-        return (
-            np.argwhere(reward_targets > min_eval)[-1][0] + 1
-            if min_eval < reward_targets[0]
-            else 0
-        )
+    if min_eval > reward_targets[0]:
+        return 0
+    target_index = np.argwhere(reward_targets >= min_eval)[-1][0]
+    return target_index + (reward_targets[target_index] - min_eval) / (
+        reward_targets[target_index] - reward_targets[target_index + 1]
+        if target_index < len(reward_targets) - 1
+        else target_index
+    )
 
 
 def create_benchmark_functions(ids, dimensions, instances):
