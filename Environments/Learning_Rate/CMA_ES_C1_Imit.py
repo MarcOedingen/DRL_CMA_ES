@@ -68,6 +68,7 @@ def run(
     )
 
     policy_path = "Environments/Learning_Rate/Policies/ppo_policy_c1_imit"
+    p_class = p_class if split == "classes" else -1
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
         print("Pre-training policy with expert samples...")
         bc_trainer.train(n_epochs=10)
@@ -94,7 +95,6 @@ def run(
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
-    p_class = p_class if split == "classes" else -1
     g_utils.save_results(
         results=results,
         policy=f"ppo_policy_c1_imit_{dimension}D_{instance}I_{p_class}C",

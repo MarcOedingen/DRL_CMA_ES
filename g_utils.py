@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from Environments.ChiN.CMA_ES_CN_Env import CMA_ES_CN
 from Environments.h_Sigma.CMA_ES_HS_Env import CMA_ES_HS
 from Environments.Damping.CMA_ES_DP_Env import CMA_ES_DP
+from Environments.Combined.CMA_ES_ST_Env import CMA_ES_ST
 from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 from Environments.Decay_Rate.CMA_ES_CC_Env import CMA_ES_CC
@@ -44,7 +45,7 @@ def set_reward_targets(optimum):
 def calc_reward(optimum, min_eval, reward_type, reward_targets):
     if reward_type == "log_opt":
         return -np.log(np.abs(min_eval - optimum))
-    if min_eval > reward_targets[0]:
+    if reward_targets[0] < min_eval:
         return 0
     target_index = np.argwhere(reward_targets >= min_eval)[-1][0]
     return target_index + (reward_targets[target_index] - min_eval) / (
@@ -286,6 +287,13 @@ def get_env(env_name, test_func, x_start, reward_type, sigma):
         )
     elif env_name == "chin":
         env = CMA_ES_CN(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
+    elif env_name == "static":
+        env = CMA_ES_ST(
             objective_funcs=[test_func],
             x_start=x_start,
             reward_type=reward_type,

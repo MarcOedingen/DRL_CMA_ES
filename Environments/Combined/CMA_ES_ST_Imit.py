@@ -1,12 +1,10 @@
 import os
-import pickle
 import g_utils
 import numpy as np
-from stable_baselines3 import PPO
 from imitation.algorithms import bc
 from gymnasium.wrappers import TimeLimit
-from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
-from Environments.Step_Size.CMA_ES_SS import collect_expert_samples
+from Environments.Combined.CMA_ES_ST_Env import CMA_ES_ST
+from Environments.Combined.CMA_ES_ST import collect_expert_samples
 
 
 def run(
@@ -23,7 +21,7 @@ def run(
     seed,
 ):
     print(
-        "---------------Running imitation learning for step-size adaptation---------------"
+        "---------------Running imitation learning for static parameters adaptation---------------"
     )
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,
@@ -36,7 +34,7 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_SS(
+        CMA_ES_ST(
             objective_funcs=train_funcs,
             x_start=x_start,
             sigma=sigma,
@@ -67,7 +65,7 @@ def run(
         rng=np.random.default_rng(seed=42),
     )
 
-    policy_path = "Environments/Step_Size/Policies/policy_ss_imit"
+    policy_path = "Environments/Combined/Policies/policy_st_imit"
     p_class = p_class if split == "classes" else -1
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
         print("Pre-training policy with expert samples...")
@@ -90,11 +88,12 @@ def run(
         sigma=sigma,
         reward_type=reward_type,
         ppo_model=ppo_model,
-        env_name="step_size",
+        env_name="static",
     )
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
+    p_class = p_class if split == "classes" else -1
     g_utils.save_results(
-        results=results, policy=f"ppo_policy_ss_imit{dimension}D_{instance}I_{p_class}C"
+        results=results, policy=f"ppo_policy_st_imit{dimension}D_{instance}I_{p_class}C"
     )

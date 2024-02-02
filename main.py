@@ -32,6 +32,8 @@ def main():
             "chi_n_imit",
             "comb",
             "comb_imit",
+            "static",
+            "static_imit",
             "evolution_path_ps",
             "evolution_path_ps_imit",
             "optuna",
@@ -39,14 +41,14 @@ def main():
             "testing",
             "eval",
         ],
-        default="optuna",
+        default="static_imit",
     )
     parser.add_argument(
         "--dimension",
         type=int,
         help="The dimension of the problem",
         choices=[-1, 2, 3, 5, 10, 20, 40],
-        default=2,
+        default=10,
     )
     parser.add_argument(
         "--x_start",
@@ -60,7 +62,7 @@ def main():
         type=int,
         help="The instance of the problem",
         choices=[i for i in range(-1, 10 + 1) if i != 0],
-        default=2,
+        default=1,
     )
     parser.add_argument(
         "--reward_type",
@@ -119,7 +121,7 @@ def main():
         type=str,
         help="The split of the functions",
         choices=["functions", "classes"],
-        default="classes",
+        default="functions",
     )
     parser.add_argument(
         "--p_class",
@@ -204,6 +206,8 @@ def get_module_and_function(algorithm):
         "chi_n_imit": ("Environments.ChiN.CMA_ES_CN_Imit", "run"),
         "comb": ("Environments.Combined.CMA_ES_COMB", "run"),
         "comb_imit": ("Environments.Combined.CMA_ES_COMB_Imit", "run"),
+        "static": ("Environments.Combined.CMA_ES_ST_run", "run"),
+        "static_imit": ("Environments.Combined.CMA_ES_ST_Imit", "run"),
         "optuna" : ("Optuna.CMA_ES_Optuna", "run"),
         "optuna_imit" : ("Optuna.CMA_ES_Optuna_Imit", "run"),
         "evolution_path_ps": ("Environments.Evolution_Path.CMA_ES_PS_run", "run"),
