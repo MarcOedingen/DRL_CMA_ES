@@ -1,5 +1,6 @@
 import argparse
 import importlib
+import subprocess
 
 
 def main():
@@ -16,20 +17,28 @@ def main():
             "step_size_imit_iter",
             "decay_rate_cs",
             "decay_rate_cs_imit",
+            "decay_rate_cs_imit_iter",
             "decay_rate_cc",
             "decay_rate_cc_imit",
+            "decay_rate_cc_imit_iter",
             "damping",
             "damping_imit",
+            "damping_imit_iter",
             "learning_rate_c1",
             "learning_rate_c1_imit",
+            "learning_rate_c1_imit_iter",
             "learning_rate_cm",
             "learning_rate_cm_imit",
+            "learning_rate_cm_imit_iter",
             "mu_effective",
             "mu_effective_imit",
+            "mu_effective_imit_iter",
             "h_sigma",
             "h_sigma_imit",
+            "h_sigma_imit_iter",
             "chi_n",
             "chi_n_imit",
+            "chi_n_imit_iter",
             "comb",
             "comb_imit",
             "static",
@@ -38,7 +47,6 @@ def main():
             "evolution_path_ps_imit",
             "optuna",
             "optuna_imit",
-            "testing",
             "eval",
         ],
         default="step_size_imit",
@@ -72,32 +80,6 @@ def main():
         default="ecdf",
     )
     parser.add_argument("--sigma", type=float, help="The initial sigma", default=0.5)
-    parser.add_argument(
-        "--policy",
-        type=str,
-        help="The model to use",
-        choices=[
-            "ppo_policy_ss",
-            "ppo_policy_ss_imit",
-            "ppo_policy_cs",
-            "ppo_policy_cs_imit",
-            "ppo_policy_cc",
-            "ppo_policy_cc_imit",
-            "ppo_policy_dp",
-            "ppo_policy_dp_imit",
-            "ppo_policy_c1",
-            "ppo_policy_c1_imit",
-            "ppo_policy_cm",
-            "ppo_policy_cm_imit",
-            "ppo_policy_me",
-            "ppo_policy_me_imit",
-            "ppo_policy_hs",
-            "ppo_policy_hs_imit",
-            "ppo_policy_ps",
-            "ppo_policy_ps_imit",
-        ],
-        default="ppo_policy_ss",
-    )
     parser.add_argument(
         "--max_episode_steps",
         type=int,
@@ -143,15 +125,11 @@ def main():
         default=213324,
     )
 
-    args = parser.parse_args()
+    # Run the experiment_prep.py script
+    subprocess.run(["python", "experiment_prep.py"], check=True)
 
-    if args.algorithm == "testing":
-        module = importlib.import_module("run_model")
-        run_function = getattr(module, "run")
-        run_function(
-            args.dimension, args.x_start, args.sigma, args.instance, args.policy
-        )
-    elif args.algorithm == "baseline" or args.algorithm == "optimized":
+    args = parser.parse_args()
+    if args.algorithm == "baseline" or args.algorithm == "optimized":
         module_path, function_name = get_module_and_function(args.algorithm)
         module = importlib.import_module(module_path)
         run_function = getattr(module, function_name)
@@ -197,26 +175,49 @@ def get_module_and_function(algorithm):
         "step_size_imit_iter": ("Environments.Step_Size.CMA_ES_SS_Imit_Iter", "run"),
         "decay_rate_cs": ("Environments.Decay_Rate.CMA_ES_CS_run", "run"),
         "decay_rate_cs_imit": ("Environments.Decay_Rate.CMA_ES_CS_Imit", "run"),
+        "decay_rate_cs_imit_iter": (
+            "Environments.Decay_Rate.CMA_ES_CS_Imit_Iter",
+            "run",
+        ),
         "decay_rate_cc": ("Environments.Decay_Rate.CMA_ES_CC_run", "run"),
         "decay_rate_cc_imit": ("Environments.Decay_Rate.CMA_ES_CC_Imit", "run"),
+        "decay_rate_cc_imit_iter": (
+            "Environments.Decay_Rate.CMA_ES_CC_Imit_Iter",
+            "run",
+        ),
         "damping": ("Environments.Damping.CMA_ES_DP_run", "run"),
         "damping_imit": ("Environments.Damping.CMA_ES_DP_Imit", "run"),
+        "damping_imit_iter": ("Environments.Damping.CMA_ES_DP_Imit_Iter", "run"),
         "learning_rate_c1": ("Environments.Learning_Rate.CMA_ES_C1_run", "run"),
         "learning_rate_c1_imit": ("Environments.Learning_Rate.CMA_ES_C1_Imit", "run"),
+        "learning_rate_c1_imit_iter": (
+            "Environments.Learning_Rate.CMA_ES_C1_Imit_Iter",
+            "run",
+        ),
         "learning_rate_cm": ("Environments.Learning_Rate.CMA_ES_CM_run", "run"),
         "learning_rate_cm_imit": ("Environments.Learning_Rate.CMA_ES_CM_Imit", "run"),
+        "learning_rate_cm_imit_iter": (
+            "Environments.Learning_Rate.CMA_ES_CM_Imit_Iter",
+            "run",
+        ),
         "mu_effective": ("Environments.Mu_Effective.CMA_ES_ME_run", "run"),
         "mu_effective_imit": ("Environments.Mu_Effective.CMA_ES_ME_Imit", "run"),
+        "mu_effective_imit_iter": (
+            "Environments.Mu_Effective.CMA_ES_ME_Imit_Iter",
+            "run",
+        ),
         "h_sigma": ("Environments.h_Sigma.CMA_ES_HS_run", "run"),
         "h_sigma_imit": ("Environments.h_Sigma.CMA_ES_HS_Imit", "run"),
+        "h_sigma_imit_iter": ("Environments.h_Sigma.CMA_ES_HS_Imit_Iter", "run"),
         "chi_n": ("Environments.ChiN.CMA_ES_CN_run", "run"),
         "chi_n_imit": ("Environments.ChiN.CMA_ES_CN_Imit", "run"),
+        "chi_n_imit_iter": ("Environments.ChiN.CMA_ES_CN_Imit_Iter", "run"),
         "comb": ("Environments.Combined.CMA_ES_COMB", "run"),
         "comb_imit": ("Environments.Combined.CMA_ES_COMB_Imit", "run"),
         "static": ("Environments.Combined.CMA_ES_ST_run", "run"),
         "static_imit": ("Environments.Combined.CMA_ES_ST_Imit", "run"),
-        "optuna" : ("Optuna.CMA_ES_Optuna", "run"),
-        "optuna_imit" : ("Optuna.CMA_ES_Optuna_Imit", "run"),
+        "optuna": ("Optuna.CMA_ES_Optuna", "run"),
+        "optuna_imit": ("Optuna.CMA_ES_Optuna_Imit", "run"),
         "evolution_path_ps": ("Environments.Evolution_Path.CMA_ES_PS_run", "run"),
         "evolution_path_ps_imit": ("Environments.Evolution_Path.CMA_ES_PS_Imit", "run"),
         "eval": ("Results.Eval_Results", "run"),

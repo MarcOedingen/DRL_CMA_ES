@@ -147,9 +147,7 @@ def run(dimension, x_start, sigma, instance, split, p_class, test_repeats):
                 else np.zeros(test_func.dimension)
             )
             f_min = runCMAES(objective_fct=test_func, x_start=_x_start, sigma=sigma)[0]
-            grp_rewards[reward_index] = np.abs(
-                test_func.best_value() - f_min
-            )
+            grp_rewards[reward_index] = np.abs(test_func.best_value() - f_min)
             reward_index += 1
         results.append(
             {

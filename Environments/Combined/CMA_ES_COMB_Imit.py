@@ -94,5 +94,6 @@ def run(
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
     p_class = p_class if split == "classes" else -1
     g_utils.save_results(
-        results=results, policy=f"ppo_policy_comb_imit{dimension}D_{instance}I_{p_class}C"
+        results=results,
+        policy=f"ppo_policy_comb_imit{dimension}D_{instance}I_{p_class}C",
     )

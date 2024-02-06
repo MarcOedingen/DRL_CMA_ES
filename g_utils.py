@@ -57,8 +57,15 @@ def calc_reward(optimum, min_eval, reward_type, reward_targets):
         else target_index
     )
 
+
 def custom_Actor_Critic_Policy(env):
-    return ActorCriticPolicy(observation_space=env.observation_space, action_space=env.action_space, net_arch=[512, 512], activation_fn=nn.Tanh, lr_schedule=lambda _: th.finfo(th.float32).max)
+    return ActorCriticPolicy(
+        observation_space=env.observation_space,
+        action_space=env.action_space,
+        net_arch=[512, 512],
+        activation_fn=nn.Tanh,
+        lr_schedule=lambda _: th.finfo(th.float32).max,
+    )
 
 
 def create_benchmark_functions(ids, dimensions, instances):
@@ -182,9 +189,10 @@ def _choose_or_repeat(choice, choices, size):
 
 
 def train_load_model(
-    policy_path, dimension, instance, split, p_class, train_env, max_evals
+    policy_path, dimension, instance, split, p_class, train_env, max_evals, policy
 ):
     ppo_model = PPO("MlpPolicy", train_env, verbose=0)
+    ppo_model.policy = policy
     p_class = p_class if split == "classes" else -1
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
         print("The policy does not exist. Training the policy...")

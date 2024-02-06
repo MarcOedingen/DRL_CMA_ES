@@ -86,12 +86,18 @@ class CMA_ES_ST(gymnasium.Env):
             [
                 np.array([new_ChiN]),
                 np.array([new_cs]),
-                np.array([self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension]),
+                np.array(
+                    [
+                        self.objective_funcs[
+                            self.curr_index % len(self.objective_funcs)
+                        ].dimension
+                    ]
+                ),
                 np.array([sigma]),
                 np.array([np.linalg.norm(ps) / self.base_ChiN - 1]),
                 np.array(self.hist_fit_vals),
                 np.array(self.hist_ChiN),
-                np.array(self.hist_cs)
+                np.array(self.hist_cs),
             ]
         )
 
@@ -151,12 +157,18 @@ class CMA_ES_ST(gymnasium.Env):
                 [
                     np.array([self.curr_ChiN]),
                     np.array([self.curr_cs]),
-                    np.array([self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension]),
+                    np.array(
+                        [
+                            self.objective_funcs[
+                                self.curr_index % len(self.objective_funcs)
+                            ].dimension
+                        ]
+                    ),
                     np.array([self.sigma]),
                     np.array([np.linalg.norm(self.cma_es.ps) / self.curr_ChiN - 1]),
                     np.array(self.hist_fit_vals),
                     np.array(self.hist_ChiN),
-                    np.array(self.hist_cs)
+                    np.array(self.hist_cs),
                 ]
             ),
             {},

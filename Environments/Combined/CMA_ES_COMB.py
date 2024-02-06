@@ -7,15 +7,28 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 
 def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_COMB(x_start, sigma)
-    start_state = np.array([es.params.c1, es.params.cc, es.params.chiN, es.params.cmu, es.params.cs, es.params.mueff,
-                            sigma, objective_fct.dimension, np.linalg.norm(es.pc), np.linalg.norm(es.ps),
-                            np.power(np.sum(es.params.weights), 2), np.sum(np.power(es.params.weights, 2))])
+    start_state = np.array(
+        [
+            es.params.c1,
+            es.params.cc,
+            es.params.chiN,
+            es.params.cmu,
+            es.params.cs,
+            es.params.mueff,
+            sigma,
+            objective_fct.dimension,
+            np.linalg.norm(es.pc),
+            np.linalg.norm(es.ps),
+            np.power(np.sum(es.params.weights), 2),
+            np.sum(np.power(es.params.weights, 2)),
+        ]
+    )
     observations, actions, dones = (
         [np.hstack((start_state, np.zeros(h + 3)))],
         [],
         [],
     )
-    #hist_c1, hist_cc, hist_ChiN, hist_cmu, hist_cs, hist_fit_vals, hist_h_sigma, hist_mueff, hist_sigmas = [deque(np.zeros(h), maxlen=h)] * 9
+    # hist_c1, hist_cc, hist_ChiN, hist_cmu, hist_cs, hist_fit_vals, hist_h_sigma, hist_mueff, hist_sigmas = [deque(np.zeros(h), maxlen=h)] * 9
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
     iteration = 0
     """curr_h_sig, curr_sigma = es.h_sig, sigma"""
@@ -61,12 +74,22 @@ def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)
                     np.array([count_eval]),
                     np.array([new_h_sig]),
                     np.array([np.linalg.norm(ps) / es.params.chiN - 1]),
-                    np.array(hist_fit_vals)
+                    np.array(hist_fit_vals),
                 ]
             )
         )
-        actions.append([es.params.c1, es.params.cc, es.params.chiN, es.params.cmu, es.params.cs, es.params.mueff,
-                        new_sigma, new_h_sig])
+        actions.append(
+            [
+                es.params.c1,
+                es.params.cc,
+                es.params.chiN,
+                es.params.cmu,
+                es.params.cs,
+                es.params.mueff,
+                new_sigma,
+                new_h_sig,
+            ]
+        )
         """curr_sigma = new_sigma
         curr_h_sig = new_h_sig"""
         dones.append(False)
@@ -112,6 +135,7 @@ def collect_expert_samples(
     return np.load(
         f"Environments/Combined/Samples/CMA_ES_COMB_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     )
+
 
 class CMAES_COMB:
     def __init__(self, x_start, sigma):

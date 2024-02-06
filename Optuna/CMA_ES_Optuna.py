@@ -4,6 +4,7 @@ import numpy as np
 from tqdm import tqdm
 from Baseline.CMA_ES_Baseline import CMAES
 
+
 def run(
     dimension,
     x_start,
@@ -13,6 +14,7 @@ def run(
     max_eps_steps,
     train_repeats,
     test_repeats,
+    pre_train_repeats,
     split,
     p_class,
     seed,
@@ -31,7 +33,11 @@ def run(
 
     def objective(trial):
         params = {
-            "chiN": trial.suggest_float("chiN", 1, 8,),
+            "chiN": trial.suggest_float(
+                "chiN",
+                1,
+                8,
+            ),
             "mu_eff": trial.suggest_float("mu_eff", 2, 5),
             "cc": trial.suggest_float("cc", 1e-3, 1),
             "cs": trial.suggest_float("cs", 1e-10, 1),
@@ -66,7 +72,11 @@ def run(
     study = optuna.create_study(direction="maximize")
     study.optimize(objective, n_trials=100, n_jobs=1)
 
-    random_best_param = np.random.choice(np.where(np.array([trial.values[0] for trial in study.trials]) == study.best_value)[0])
+    random_best_param = np.random.choice(
+        np.where(
+            np.array([trial.values[0] for trial in study.trials]) == study.best_value
+        )[0]
+    )
     best_params = study.trials[random_best_param].params
 
     np.savez(

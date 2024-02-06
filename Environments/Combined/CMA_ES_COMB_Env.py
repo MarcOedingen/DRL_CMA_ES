@@ -17,12 +17,22 @@ class CMA_ES_COMB(gymnasium.Env):
 
         self.h = 40
         self.curr_sigma = sigma
-        self.curr_c1, self.curr_cc, self.curr_chiN, self.curr_cmu, self.curr_cs, self.curr_mueff, self.curr_h_sigma = [0] * 7
+        (
+            self.curr_c1,
+            self.curr_cc,
+            self.curr_chiN,
+            self.curr_cmu,
+            self.curr_cs,
+            self.curr_mueff,
+            self.curr_h_sigma,
+        ) = [0] * 7
         """self.hist_c1, self.hist_cc, self.hist_ChiN, self.hist_cmu, self.hist_cs, self.hist_fit_vals, self.hist_h_sigma, self.hist_mueff, self.hist_sigma = [deque(np.zeros(self.h), maxlen=self.h)] * 9"""
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
 
         self.action_space = gymnasium.spaces.Box(
-            low=np.array([1e-4, 1e-3, 1, 1e-4, 1e-10, 2, 5e-2, 0]), high=np.array([2e-1, 1, 8, 1e-1, 1, 5, 10, 1]), dtype=np.float64
+            low=np.array([1e-4, 1e-3, 1, 1e-4, 1e-10, 2, 5e-2, 0]),
+            high=np.array([2e-1, 1, 8, 1e-1, 1, 5, 10, 1]),
+            dtype=np.float64,
         )
         self.observation_space = gymnasium.spaces.Box(
             low=-np.inf, high=np.inf, shape=(15 + self.h,), dtype=np.float64
@@ -36,7 +46,16 @@ class CMA_ES_COMB(gymnasium.Env):
         self.last_achieved = 0
 
     def step(self, action):
-        new_c1, new_cc, new_ChiN, new_cmu, new_cs, new_mueff, new_sigma, new_h_sig = action
+        (
+            new_c1,
+            new_cc,
+            new_ChiN,
+            new_cmu,
+            new_cs,
+            new_mueff,
+            new_sigma,
+            new_h_sig,
+        ) = action
 
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
@@ -96,7 +115,13 @@ class CMA_ES_COMB(gymnasium.Env):
                 np.array([new_cs]),
                 np.array([new_mueff]),
                 np.array([new_sigma]),
-                np.array([self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension]),
+                np.array(
+                    [
+                        self.objective_funcs[
+                            self.curr_index % len(self.objective_funcs)
+                        ].dimension
+                    ]
+                ),
                 np.array([np.linalg.norm(pc)]),
                 np.array([np.linalg.norm(ps)]),
                 np.array([np.power(np.sum(self.cma_es.params.weights), 2)]),
@@ -104,7 +129,7 @@ class CMA_ES_COMB(gymnasium.Env):
                 np.array([count_eval]),
                 np.array([new_h_sig]),
                 np.array([np.linalg.norm(ps) / new_ChiN - 1]),
-                np.array(self.hist_fit_vals)
+                np.array(self.hist_fit_vals),
             ]
         )
 
@@ -187,13 +212,19 @@ class CMA_ES_COMB(gymnasium.Env):
                     np.array([self.curr_cs]),
                     np.array([self.curr_mueff]),
                     np.array([self.curr_sigma]),
-                    np.array([self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension]),
+                    np.array(
+                        [
+                            self.objective_funcs[
+                                self.curr_index % len(self.objective_funcs)
+                            ].dimension
+                        ]
+                    ),
                     np.array([np.linalg.norm(self.cma_es.pc)]),
                     np.array([np.linalg.norm(self.cma_es.ps)]),
                     np.array([np.power(np.sum(self.cma_es.params.weights), 2)]),
                     np.array([np.sum(np.power(self.cma_es.params.weights, 2))]),
                     np.zeros(3),
-                    np.array(self.hist_fit_vals)
+                    np.array(self.hist_fit_vals),
                 ]
             ),
             {},

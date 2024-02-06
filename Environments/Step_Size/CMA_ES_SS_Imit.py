@@ -60,7 +60,7 @@ def run(
     )
 
     n_epochs = 10
-    indices = np.where(expert_samples['dones'])[0]
+    indices = np.where(expert_samples["dones"])[0]
     diffs = np.diff(indices)
     batch_size = int(np.median(diffs) / (pre_train_repeats * n_epochs))
 
@@ -121,5 +121,6 @@ def run(
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
     g_utils.save_results(
-        results=results, policy=f"ppo_policy_ss_imit{dimension}D_{instance}I_{p_class}C"
+        results=results,
+        policy=f"ppo_policy_ss_imit_{dimension}D_{instance}I_{p_class}C",
     )

@@ -7,7 +7,9 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 
 def run_CMAES_ST(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_ST(x_start, sigma)
-    start_state = np.array([es.params.chiN, es.params.cs, objective_fct.dimension, sigma])
+    start_state = np.array(
+        [es.params.chiN, es.params.cs, objective_fct.dimension, sigma]
+    )
     observations, actions, dones = [np.hstack((start_state, np.zeros(121)))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
     hist_chiN = deque(np.zeros(h), maxlen=h)

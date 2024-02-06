@@ -1,8 +1,5 @@
-import os
-import pickle
 import g_utils
 import numpy as np
-from stable_baselines3 import PPO
 from gymnasium.wrappers import TimeLimit
 from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
 
@@ -16,6 +13,7 @@ def run(
     max_eps_steps,
     train_repeats,
     test_repeats,
+    pre_train_repeats,
     split,
     p_class,
     seed,
@@ -51,6 +49,7 @@ def run(
         p_class=p_class,
         train_env=train_env,
         max_evals=int(max_eps_steps * len(train_funcs) * train_repeats),
+        policy=g_utils.custom_Actor_Critic_Policy(train_env),
     )
 
     results = g_utils.evaluate_agent(

@@ -4,8 +4,8 @@ import numpy as np
 from stable_baselines3 import PPO
 from imitation.algorithms import bc
 from gymnasium.wrappers import TimeLimit
-from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
-from Environments.Step_Size.CMA_ES_SS import collect_expert_samples
+from Environments.h_Sigma.CMA_ES_HS_Env import CMA_ES_HS
+from Environments.h_Sigma.CMA_ES_HS import collect_expert_samples
 
 
 def run(
@@ -23,7 +23,7 @@ def run(
     seed,
 ):
     print(
-        "---------------Running iterative imitation learning for step-size adaptation---------------"
+        "---------------Running iterative imitation learning for Heaviside function (h_sigma) adaptation---------------"
     )
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,
@@ -68,11 +68,11 @@ def run(
     max_evals = len(train_funcs) * int(1e3) * dimension**2
 
     for i in range(iterations):
-        print(f"Training policy in iteration {i+1}...")
+        print(f"Training policy in iteration {i + 1}...")
 
         np.random.shuffle(train_funcs)
         train_env = TimeLimit(
-            CMA_ES_SS(
+            CMA_ES_HS(
                 objective_funcs=train_funcs,
                 x_start=x_start,
                 sigma=sigma,
@@ -103,7 +103,7 @@ def run(
 
     # save the policy for the last iteration
     with open(
-        f"Environments/Step_Size/Policies/ppo_policy_ss_imit_iter_{dimension}D_{instance}I_{p_class}C.pkl",
+        f"Environments/h_Sigma/Policies/ppo_policy_hs_imit_iter_{dimension}D_{instance}I_{p_class}C.pkl",
         "wb",
     ) as f:
         pickle.dump(policy, f)
@@ -114,7 +114,7 @@ def run(
         sigma=sigma,
         reward_type=reward_type,
         ppo_model=ppo_model,
-        env_name="step_size",
+        env_name="h_sigma",
     )
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]
@@ -122,5 +122,5 @@ def run(
     p_class = p_class if split == "classes" else -1
     g_utils.save_results(
         results=results,
-        policy=f"ppo_policy_ss_imit_iter_{dimension}D_{instance}I_{p_class}C",
+        policy=f"ppo_policy_hs_imit_iter_{dimension}D_{instance}I_{p_class}C",
     )
