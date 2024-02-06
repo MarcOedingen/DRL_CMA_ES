@@ -41,7 +41,7 @@ def main():
             "testing",
             "eval",
         ],
-        default="static_imit",
+        default="step_size_imit",
     )
     parser.add_argument(
         "--dimension",
@@ -108,13 +108,19 @@ def main():
         "--train_repeats",
         type=int,
         help="The number of repeats for the training functions",
-        default=5,
+        default=10,
     )
     parser.add_argument(
         "--test_repeats",
         type=int,
         help="The number of repeats for the test functions",
         default=10,
+    )
+    parser.add_argument(
+        "--pre_train_repeats",
+        type=int,
+        help="The number of repeats for pre-training PPO",
+        default=5,
     )
     parser.add_argument(
         "--split",
@@ -175,6 +181,7 @@ def main():
             args.max_episode_steps,
             args.train_repeats,
             args.test_repeats,
+            args.pre_train_repeats,
             args.split,
             args.p_class,
             args.seed,

@@ -1,5 +1,4 @@
 import pickle
-
 import g_utils
 import numpy as np
 from stable_baselines3 import PPO
@@ -18,6 +17,7 @@ def run(
         max_eps_steps,
         train_repeats,
         test_repeats,
+        pre_train_repeats,
         split,
         p_class,
         seed,
@@ -83,9 +83,8 @@ def run(
             action_space=train_env.action_space,
             demonstrations=transition_splits[i],
             rng=np.random.default_rng(seed=42),
+            policy=g_utils.custom_Actor_Critic_Policy(train_env) if policy is None else policy,
         )
-        if policy is not None:
-            bc_trainer.set_policy(policy)
 
         bc_trainer.train(n_epochs=int(np.ceil(10 / np.power(2, np.sqrt(i)))))
 

@@ -1,6 +1,8 @@
 import os
 import pickle
 import numpy as np
+import torch as th
+from torch import nn
 from tqdm import tqdm
 from stable_baselines3 import PPO
 from prettytable import PrettyTable
@@ -22,6 +24,7 @@ from Environments.Learning_Rate.CMA_ES_CM_Env import CMA_ES_CM
 from Environments.Evolution_Path.CMA_ES_PS_Env import CMA_ES_PS
 
 from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.policies import ActorCriticPolicy
 
 _reward_decay = 50 * np.exp(-0.5 * np.arange(50))
 
@@ -53,6 +56,9 @@ def calc_reward(optimum, min_eval, reward_type, reward_targets):
         if target_index < len(reward_targets) - 1
         else target_index
     )
+
+def custom_Actor_Critic_Policy(env):
+    return ActorCriticPolicy(observation_space=env.observation_space, action_space=env.action_space, net_arch=[512, 512], activation_fn=nn.Tanh, lr_schedule=lambda _: th.finfo(th.float32).max)
 
 
 def create_benchmark_functions(ids, dimensions, instances):
