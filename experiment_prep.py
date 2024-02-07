@@ -2,6 +2,7 @@ import os
 
 
 def prepare_experiment_folders():
+    print("------------------ Preparing experiment folders ------------------")
     for dir in os.listdir("Environments"):
         if not os.path.exists(f"Environments/{dir}/Policies"):
             os.makedirs(f"Environments/{dir}/Policies")

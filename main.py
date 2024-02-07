@@ -43,6 +43,7 @@ def main():
             "comb_imit",
             "static",
             "static_imit",
+            "static_imit_iter",
             "evolution_path_ps",
             "evolution_path_ps_imit",
             "optuna",
@@ -125,7 +126,6 @@ def main():
         default=213324,
     )
 
-    # Run the experiment_prep.py script
     subprocess.run(["python", "experiment_prep.py"], check=True)
 
     args = parser.parse_args()
@@ -216,6 +216,7 @@ def get_module_and_function(algorithm):
         "comb_imit": ("Environments.Combined.CMA_ES_COMB_Imit", "run"),
         "static": ("Environments.Combined.CMA_ES_ST_run", "run"),
         "static_imit": ("Environments.Combined.CMA_ES_ST_Imit", "run"),
+        "static_imit_iter": ("Environments.Combined.CMA_ES_ST_Imit_Iter", "run"),
         "optuna": ("Optuna.CMA_ES_Optuna", "run"),
         "optuna_imit": ("Optuna.CMA_ES_Optuna_Imit", "run"),
         "evolution_path_ps": ("Environments.Evolution_Path.CMA_ES_PS_run", "run"),

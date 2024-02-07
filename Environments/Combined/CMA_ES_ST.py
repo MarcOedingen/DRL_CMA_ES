@@ -7,18 +7,20 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 
 def run_CMAES_ST(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_ST(x_start, sigma)
-    start_state = np.array(
-        [es.params.chiN, es.params.cs, objective_fct.dimension, sigma]
-    )
-    observations, actions, dones = [np.hstack((start_state, np.zeros(121)))], [], []
+    start_state = np.array([es.params.chiN, es.params.damps, es.params.cs, es.params.cc, es.params.c1, es.params.cmu, objective_fct.dimension])
+    observations, actions, dones = [np.hstack((start_state, np.zeros(7*40)))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
     hist_chiN = deque(np.zeros(h), maxlen=h)
+    hist_damps = deque(np.zeros(h), maxlen=h)
     hist_cs = deque(np.zeros(h), maxlen=h)
+    hist_cc = deque(np.zeros(h), maxlen=h)
+    hist_c1 = deque(np.zeros(h), maxlen=h)
+    hist_cmu = deque(np.zeros(h), maxlen=h)
     iteration = 0
     while not es.stop():
         X = es.ask()
         fit = [objective_fct(x) for x in X]
-        sigma, ps = es.tell(X, fit)
+        sigma, ps, pc = es.tell(X, fit)
         f_best = np.min(fit)
         if iteration > 0:
             difference = np.clip(
@@ -28,22 +30,32 @@ def run_CMAES_ST(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
             )
             hist_fit_vals.append(difference)
             hist_chiN.append(es.params.chiN)
+            hist_damps.append(es.params.damps)
             hist_cs.append(es.params.cs)
+            hist_cc.append(es.params.cc)
+            hist_c1.append(es.params.c1)
+            hist_cmu.append(es.params.cmu)
         observations.append(
             np.concatenate(
                 [
                     np.array([es.params.chiN]),
+                    np.array([es.params.damps]),
                     np.array([es.params.cs]),
+                    np.array([es.params.cc]),
+                    np.array([es.params.c1]),
+                    np.array([es.params.cmu]),
                     np.array([objective_fct.dimension]),
-                    np.array([sigma]),
-                    np.array([np.linalg.norm(ps) / es.params.chiN - 1]),
                     np.array(hist_fit_vals),
                     np.array(hist_chiN),
+                    np.array(hist_damps),
                     np.array(hist_cs),
+                    np.array(hist_cc),
+                    np.array(hist_c1),
+                    np.array(hist_cmu),
                 ]
             )
         )
-        actions.append([es.params.chiN, es.params.cs])
+        actions.append([es.params.chiN, es.params.damps, es.params.cs, es.params.cc, es.params.c1, es.params.cmu])
         dones.append(False)
         iteration += 1
     dones[-1] = True
@@ -159,7 +171,7 @@ class CMAES_ST:
             * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
 
-        return self.sigma, self.ps
+        return self.sigma, self.ps, self.pc
 
     def stop(self):
         res = {}
