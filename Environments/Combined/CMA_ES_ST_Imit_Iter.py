@@ -63,22 +63,24 @@ def run(
         )
         curr_index = index_split
 
+    np.random.shuffle(train_funcs)
+    train_env = TimeLimit(
+        CMA_ES_ST(
+            objective_funcs=train_funcs,
+            x_start=x_start,
+            sigma=sigma,
+            reward_type=reward_type,
+        ),
+        max_episode_steps=max_eps_steps,
+    )
+
+    ppo_model = PPO("MlpPolicy", train_env, verbose=0)
+
     policy = None
     max_evals = len(train_funcs) * int(1e3) * dimension ** 2
 
     for i in range(iterations):
         print(f"Training policy in iteration {i + 1}...")
-
-        np.random.shuffle(train_funcs)
-        train_env = TimeLimit(
-            CMA_ES_ST(
-                objective_funcs=train_funcs,
-                x_start=x_start,
-                sigma=sigma,
-                reward_type=reward_type,
-            ),
-            max_episode_steps=max_eps_steps,
-        )
 
         bc_trainer = bc.BC(
             observation_space=train_env.observation_space,
@@ -92,13 +94,23 @@ def run(
 
         bc_trainer.train(n_epochs=int(np.ceil(10 / np.power(2, np.sqrt(i)))))
 
-        ppo_model = PPO("MlpPolicy", train_env, verbose=0)
         ppo_model.policy = bc_trainer.policy
         ppo_model.learn(
             total_timesteps=max_evals,
             callback=g_utils.StopOnAllFunctionsEvaluated(),
         )
         policy = ppo_model.policy
+
+        np.random.shuffle(train_funcs)
+        train_env = TimeLimit(
+            CMA_ES_ST(
+                objective_funcs=train_funcs,
+                x_start=x_start,
+                sigma=sigma,
+                reward_type=reward_type,
+            ),
+            max_episode_steps=max_eps_steps,
+        )
 
     with open(
             f"Environments/Combined/Policies/ppo_policy_st_imit_iter_{dimension}D_{instance}I_{p_class}C.pkl",
