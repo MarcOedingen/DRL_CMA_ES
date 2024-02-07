@@ -1,4 +1,7 @@
 import pickle
+
+import stable_baselines3.common.vec_env
+
 import g_utils
 import numpy as np
 from stable_baselines3 import PPO
@@ -92,7 +95,7 @@ def run(
             else policy,
         )
 
-        bc_trainer.train(n_epochs=int(np.ceil(10 / np.power(2, np.sqrt(i)))))
+        bc_trainer.train(n_epochs=1)#int(np.ceil(10 / np.power(2, np.sqrt(i)))))
 
         ppo_model.policy = bc_trainer.policy
         ppo_model.learn(
@@ -111,6 +114,7 @@ def run(
             ),
             max_episode_steps=max_eps_steps,
         )
+        ppo_model.env = stable_baselines3.common.vec_env.DummyVecEnv([lambda: train_env])
 
     with open(
             f"Environments/Combined/Policies/ppo_policy_st_imit_iter_{dimension}D_{instance}I_{p_class}C.pkl",

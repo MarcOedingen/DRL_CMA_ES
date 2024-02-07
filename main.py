@@ -50,7 +50,7 @@ def main():
             "optuna_imit",
             "eval",
         ],
-        default="step_size_imit",
+        default="static_imit_iter",
     )
     parser.add_argument(
         "--dimension",
@@ -91,7 +91,7 @@ def main():
         "--train_repeats",
         type=int,
         help="The number of repeats for the training functions",
-        default=10,
+        default=1,
     )
     parser.add_argument(
         "--test_repeats",
@@ -110,7 +110,7 @@ def main():
         type=str,
         help="The split of the functions",
         choices=["functions", "classes"],
-        default="functions",
+        default="classes",
     )
     parser.add_argument(
         "--p_class",
