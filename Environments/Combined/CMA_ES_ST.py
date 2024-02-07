@@ -7,8 +7,8 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 
 def run_CMAES_ST(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_ST(x_start, sigma)
-    start_state = np.array([es.params.chiN, es.params.damps, es.params.cs, es.params.cc, es.params.c1, es.params.cmu, objective_fct.dimension])
-    observations, actions, dones = [np.hstack((start_state, np.zeros(7*40)))], [], []
+    start_state = np.array([es.params.chiN, es.params.damps, es.params.cs, es.params.cc, es.params.c1, es.params.cmu, es.params.mueff, objective_fct.dimension])
+    observations, actions, dones = [np.hstack((start_state, np.zeros(8*40)))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
     hist_chiN = deque(np.zeros(h), maxlen=h)
     hist_damps = deque(np.zeros(h), maxlen=h)
@@ -16,6 +16,7 @@ def run_CMAES_ST(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     hist_cc = deque(np.zeros(h), maxlen=h)
     hist_c1 = deque(np.zeros(h), maxlen=h)
     hist_cmu = deque(np.zeros(h), maxlen=h)
+    hist_mueff = deque(np.zeros(h), maxlen=h)
     iteration = 0
     while not es.stop():
         X = es.ask()
@@ -35,6 +36,7 @@ def run_CMAES_ST(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
             hist_cc.append(es.params.cc)
             hist_c1.append(es.params.c1)
             hist_cmu.append(es.params.cmu)
+            hist_mueff.append(es.params.mueff)
         observations.append(
             np.concatenate(
                 [
@@ -44,6 +46,7 @@ def run_CMAES_ST(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                     np.array([es.params.cc]),
                     np.array([es.params.c1]),
                     np.array([es.params.cmu]),
+                    np.array([es.params.mueff]),
                     np.array([objective_fct.dimension]),
                     np.array(hist_fit_vals),
                     np.array(hist_chiN),
@@ -52,10 +55,11 @@ def run_CMAES_ST(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                     np.array(hist_cc),
                     np.array(hist_c1),
                     np.array(hist_cmu),
+                    np.array(hist_mueff),
                 ]
             )
         )
-        actions.append([es.params.chiN, es.params.damps, es.params.cs, es.params.cc, es.params.c1, es.params.cmu])
+        actions.append([es.params.chiN, es.params.damps, es.params.cs, es.params.cc, es.params.c1, es.params.cmu, es.params.mueff])
         dones.append(False)
         iteration += 1
     dones[-1] = True

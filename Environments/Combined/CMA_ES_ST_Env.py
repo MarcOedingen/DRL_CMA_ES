@@ -23,6 +23,7 @@ class CMA_ES_ST(gymnasium.Env):
         self.curr_cc = 0
         self.curr_c1 = 0
         self.curr_cmu = 0
+        self.curr_mueff = 0
         self.hist_fit_vals = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_ChiN = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_damps = deque(np.zeros(self.h), maxlen=self.h)
@@ -30,12 +31,13 @@ class CMA_ES_ST(gymnasium.Env):
         self.hist_cc = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_c1 = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_cmu = deque(np.zeros(self.h), maxlen=self.h)
+        self.hist_mueff = deque(np.zeros(self.h), maxlen=self.h)
 
         self.action_space = gymnasium.spaces.Box(
-            low=np.array([1, 1, 1e-10, 1e-3, 1e-4, 1e-4]), high=np.array([8, 2, 1, 1, 0.2, 0.1]), dtype=np.float64
+            low=np.array([1, 1, 1e-10, 1e-3, 1e-4, 1e-4, 2]), high=np.array([8, 2, 1, 1, 0.2, 0.1, 5]), dtype=np.float64
         )
         self.observation_space = gymnasium.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(7 + 7 * self.h,), dtype=np.float64
+            low=-np.inf, high=np.inf, shape=(8 + 8 * self.h,), dtype=np.float64
         )
 
         self.iteration = 0
@@ -46,13 +48,14 @@ class CMA_ES_ST(gymnasium.Env):
         self.last_achieved = 0
 
     def step(self, action):
-        new_ChiN, new_damps, new_cs, new_cc, new_c1, new_cmu = action[0], action[1], action[2], action[3], action[4], action[5]
+        new_ChiN, new_damps, new_cs, new_cc, new_c1, new_cmu, new_mueff = action[0], action[1], action[2], action[3], action[4], action[5], action[6]
         self.cma_es.params.chiN = new_ChiN
         self.cma_es.params.damps = new_damps
         self.cma_es.params.cs = new_cs
         self.cma_es.params.cc = new_cc
         self.cma_es.params.c1 = new_c1
         self.cma_es.params.cmu = new_cmu
+        self.cma_es.params.mueff = new_mueff
 
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
@@ -96,6 +99,7 @@ class CMA_ES_ST(gymnasium.Env):
             self.hist_cc.append(self.curr_cc)
             self.hist_c1.append(self.curr_c1)
             self.hist_cmu.append(self.curr_cmu)
+            self.hist_mueff.append(self.curr_mueff)
 
         new_state = np.concatenate(
             [
@@ -105,6 +109,7 @@ class CMA_ES_ST(gymnasium.Env):
                 np.array([new_cc]),
                 np.array([new_c1]),
                 np.array([new_cmu]),
+                np.array([new_mueff]),
                 np.array([self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension]),
                 np.array(self.hist_fit_vals),
                 np.array(self.hist_ChiN),
@@ -113,6 +118,7 @@ class CMA_ES_ST(gymnasium.Env):
                 np.array(self.hist_cc),
                 np.array(self.hist_c1),
                 np.array(self.hist_cmu),
+                np.array(self.hist_mueff),
             ]
         )
 
@@ -132,6 +138,7 @@ class CMA_ES_ST(gymnasium.Env):
         self.curr_cc = new_cc
         self.curr_c1 = new_c1
         self.curr_cmu = new_cmu
+        self.curr_mueff = new_mueff
 
         return new_state, reward, terminated, truncated, {}
 
@@ -150,6 +157,7 @@ class CMA_ES_ST(gymnasium.Env):
         self.hist_cc = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_c1 = deque(np.zeros(self.h), maxlen=self.h)
         self.hist_cmu = deque(np.zeros(self.h), maxlen=self.h)
+        self.hist_mueff = deque(np.zeros(self.h), maxlen=self.h)
         self._f_targets = g_utils.set_reward_targets(
             self.objective_funcs[
                 self.curr_index % len(self.objective_funcs)
@@ -178,6 +186,7 @@ class CMA_ES_ST(gymnasium.Env):
         self.curr_cc = self.cma_es.params.cc
         self.curr_c1 = self.cma_es.params.c1
         self.curr_cmu = self.cma_es.params.cmu
+        self.curr_mueff = self.cma_es.params.mueff
         self.iteration = 0
         return (
             np.concatenate(
@@ -188,6 +197,7 @@ class CMA_ES_ST(gymnasium.Env):
                     np.array([self.curr_cc]),
                     np.array([self.curr_c1]),
                     np.array([self.curr_cmu]),
+                    np.array([self.curr_mueff]),
                     np.array([self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension]),
                     np.array(self.hist_fit_vals),
                     np.array(self.hist_ChiN),
@@ -196,6 +206,7 @@ class CMA_ES_ST(gymnasium.Env):
                     np.array(self.hist_cc),
                     np.array(self.hist_c1),
                     np.array(self.hist_cmu),
+                    np.array(self.hist_mueff),
                 ]
             ),
             {},
