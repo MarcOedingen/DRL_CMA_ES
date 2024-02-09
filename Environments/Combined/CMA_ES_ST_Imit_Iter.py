@@ -1,11 +1,10 @@
 import pickle
-
-import stable_baselines3.common.vec_env
-
 import g_utils
 import numpy as np
+from torch import nn
 from stable_baselines3 import PPO
 from imitation.algorithms import bc
+import stable_baselines3.common.vec_env
 from gymnasium.wrappers import TimeLimit
 from Environments.Combined.CMA_ES_ST_Env import CMA_ES_ST
 from Environments.Combined.CMA_ES_ST import collect_expert_samples
@@ -37,7 +36,7 @@ def run(
         random_state=seed,
     )
 
-    iterations = 3
+    iterations = 5
 
     expert_samples = collect_expert_samples(
         dimension=dimension,
@@ -76,8 +75,15 @@ def run(
         ),
         max_episode_steps=max_eps_steps,
     )
-
-    ppo_model = PPO("MlpPolicy", train_env, verbose=0)
+    policy_kwargs = dict(
+        net_arch=dict(
+            pi=[512, 512],
+            vf=[512, 512],
+        ),
+        activation_fn=nn.Tanh,
+    )
+    ppo_model = PPO("MlpPolicy", train_env, ent_coef=1e-4, learning_rate=1e-5, policy_kwargs=policy_kwargs, verbose=0)
+    ppo_model.policy = g_utils.custom_Actor_Critic_Policy(train_env)
 
     policy = None
     max_evals = len(train_funcs) * int(1e3) * dimension ** 2
@@ -93,11 +99,13 @@ def run(
             policy=g_utils.custom_Actor_Critic_Policy(train_env)
             if policy is None
             else policy,
+            batch_size=64,
         )
 
         bc_trainer.train(n_epochs=int(np.ceil(10 / np.power(2, np.sqrt(i)))))
+        bc_policy_parameters = {name: param.data for name, param in bc_trainer.policy.named_parameters()}
+        ppo_model.policy.load_state_dict(bc_policy_parameters)
 
-        ppo_model.policy = bc_trainer.policy
         ppo_model.learn(
             total_timesteps=max_evals,
             callback=g_utils.StopOnAllFunctionsEvaluated(),
