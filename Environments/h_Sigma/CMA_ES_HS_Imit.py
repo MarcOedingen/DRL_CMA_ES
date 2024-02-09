@@ -60,9 +60,7 @@ def run(
     )
 
     n_epochs = 10
-    indices = np.where(expert_samples["dones"])[0]
-    diffs = np.diff(indices)
-    batch_size = int(np.median(diffs) / (pre_train_repeats * n_epochs))
+    batch_size = 64
 
     bc_trainer = bc.BC(
         observation_space=pre_train_env.observation_space,
