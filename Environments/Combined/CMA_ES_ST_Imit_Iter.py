@@ -95,7 +95,7 @@ def run(
             else policy,
         )
 
-        bc_trainer.train(n_epochs=1)#int(np.ceil(10 / np.power(2, np.sqrt(i)))))
+        bc_trainer.train(n_epochs=int(np.ceil(10 / np.power(2, np.sqrt(i)))))
 
         ppo_model.policy = bc_trainer.policy
         ppo_model.learn(
