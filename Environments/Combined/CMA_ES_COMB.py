@@ -7,39 +7,24 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 
 def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_COMB(x_start, sigma)
-    start_state = np.array(
-        [
-            es.params.c1,
-            es.params.cc,
-            es.params.chiN,
-            es.params.cmu,
-            es.params.cs,
-            es.params.mueff,
-            sigma,
-            objective_fct.dimension,
-            np.linalg.norm(es.pc),
-            np.linalg.norm(es.ps),
-            np.power(np.sum(es.params.weights), 2),
-            np.sum(np.power(es.params.weights, 2)),
-        ]
-    )
-    observations, actions, dones = (
-        [np.hstack((start_state, np.zeros(h + 3)))],
-        [],
-        [],
-    )
-    # hist_c1, hist_cc, hist_ChiN, hist_cmu, hist_cs, hist_fit_vals, hist_h_sigma, hist_mueff, hist_sigmas = [deque(np.zeros(h), maxlen=h)] * 9
+    start_state = np.array([es.params.chiN, es.params.cc, es.params.cs, es.params.c1, es.params.cmu, es.params.mueff, objective_fct.dimension, sigma, 0])
+    observations, actions, dones = [np.hstack((start_state, np.zeros(9*40)))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
+    hist_chiN = deque(np.zeros(h), maxlen=h)
+    hist_cc = deque(np.zeros(h), maxlen=h)
+    hist_cs = deque(np.zeros(h), maxlen=h)
+    hist_c1 = deque(np.zeros(h), maxlen=h)
+    hist_cmu = deque(np.zeros(h), maxlen=h)
+    hist_mueff = deque(np.zeros(h), maxlen=h)
+    hist_sigma = deque(np.zeros(h), maxlen=h)
+    hist_h_sig = deque(np.zeros(h), maxlen=h)
     iteration = 0
-    """curr_h_sig, curr_sigma = es.h_sig, sigma"""
     while not es.stop():
         X = es.ask()
         fit = [objective_fct(x) for x in X]
-        new_h_sig, x_old, arx = es.tell(X, fit)
-        new_h_sig = 1 if new_h_sig else 0
-        es.h_sig = new_h_sig
-        new_sigma, pc, ps, count_eval = es.tell2(x_old, arx)
-        es.sigma = new_sigma
+        h_sig, x_old, arx = es.tell(X, fit)
+        es.h_sig = h_sig
+        sigma, ps, pc = es.tell2(x_old, arx)
         f_best = np.min(fit)
         if iteration > 0:
             difference = np.clip(
@@ -48,50 +33,39 @@ def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)
                 f_limit,
             )
             hist_fit_vals.append(difference)
-            """hist_c1.append(es.params.c1)
+            hist_chiN.append(es.params.chiN)
             hist_cc.append(es.params.cc)
-            hist_ChiN.append(es.params.chiN)
-            hist_cmu.append(es.params.cmu)
             hist_cs.append(es.params.cs)
-            hist_h_sigma.append(curr_h_sig)
+            hist_c1.append(es.params.c1)
+            hist_cmu.append(es.params.cmu)
             hist_mueff.append(es.params.mueff)
-            hist_sigmas.append(curr_sigma)"""
+            hist_sigma.append(sigma)
+            hist_h_sig.append(h_sig)
         observations.append(
             np.concatenate(
                 [
-                    np.array([es.params.c1]),
-                    np.array([es.params.cc]),
                     np.array([es.params.chiN]),
-                    np.array([es.params.cmu]),
+                    np.array([es.params.cc]),
                     np.array([es.params.cs]),
+                    np.array([es.params.c1]),
+                    np.array([es.params.cmu]),
                     np.array([es.params.mueff]),
-                    np.array([new_sigma]),
                     np.array([objective_fct.dimension]),
-                    np.array([np.linalg.norm(pc)]),
-                    np.array([np.linalg.norm(ps)]),
-                    np.array([np.power(np.sum(es.params.weights), 2)]),
-                    np.array([np.sum(np.power(es.params.weights, 2))]),
-                    np.array([count_eval]),
-                    np.array([new_h_sig]),
-                    np.array([np.linalg.norm(ps) / es.params.chiN - 1]),
+                    np.array([sigma]),
+                    np.array([h_sig]),
                     np.array(hist_fit_vals),
+                    np.array(hist_chiN),
+                    np.array(hist_cc),
+                    np.array(hist_cs),
+                    np.array(hist_c1),
+                    np.array(hist_cmu),
+                    np.array(hist_mueff),
+                    np.array(hist_sigma),
+                    np.array(hist_h_sig),
                 ]
             )
         )
-        actions.append(
-            [
-                es.params.c1,
-                es.params.cc,
-                es.params.chiN,
-                es.params.cmu,
-                es.params.cs,
-                es.params.mueff,
-                new_sigma,
-                new_h_sig,
-            ]
-        )
-        """curr_sigma = new_sigma
-        curr_h_sig = new_h_sig"""
+        actions.append([es.params.chiN, es.params.cc, es.params.cs, es.params.c1, es.params.cmu, es.params.mueff, sigma, h_sig])
         dones.append(False)
         iteration += 1
     dones[-1] = True
@@ -105,12 +79,10 @@ def collect_expert_samples(
     if os.path.isfile(
         f"Environments/Combined/Samples/CMA_ES_COMB_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     ):
-        print("Loading expert samples...")
         data = np.load(
             f"Environments/Combined/Samples/CMA_ES_COMB_Samples_{dimension}D_{instance}I_{p_class}C.npz"
         )
         return data
-    print("Collecting expert samples...")
     observations, actions, dones = [], [], []
     for function in tqdm(bbob_functions):
         _x_start = (
@@ -136,18 +108,17 @@ def collect_expert_samples(
         f"Environments/Combined/Samples/CMA_ES_COMB_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     )
 
-
 class CMAES_COMB:
     def __init__(self, x_start, sigma):
         N = len(x_start)
         self.params = CMAESParameters(N)
         self.max_f_evals = 1e3 * N**2
 
-        # initializing dynamic state variables
         self.x_mean = x_start
         self.sigma = sigma
         self.pc = np.zeros(N)
         self.ps = np.zeros(N)
+
         self.B = np.eye(N)
         self.D = np.ones(N)
         self.C = np.eye(N)
@@ -174,6 +145,7 @@ class CMAES_COMB:
 
         arx = arx[np.argsort(fit_vals)]
         self.fit_vals = np.sort(fit_vals)
+        self.fit_vals = np.clip(self.fit_vals, -np.power(10, 28), np.power(10, 28))
 
         self.x_mean = np.sum(
             arx[0 : self.params.mu] * self.params.weights[: self.params.mu, None],
@@ -184,10 +156,11 @@ class CMAES_COMB:
         self.ps = (1 - self.params.cs) * self.ps + np.sqrt(
             self.params.cs * (2 - self.params.cs) * self.params.mueff
         ) * np.dot(self.inv_sqrt_C, (self.x_mean - x_old)) / self.sigma
-        expert_h_sig = np.linalg.norm(self.ps) / np.sqrt(
+        h_sig = np.linalg.norm(self.ps) / np.sqrt(
             1 - (1 - self.params.cs) ** (2 * self.count_eval / self.params.lam)
         ) / self.params.chiN < 1.4 + 2 / (N + 1)
-        return expert_h_sig, x_old, arx
+
+        return h_sig, x_old, arx
 
     def tell2(self, x_old, arx):
         self.pc = (1 - self.params.cc) * self.pc + self.h_sig * np.sqrt(
@@ -207,12 +180,12 @@ class CMAES_COMB:
         )
 
         # Adapt step-size sigma
-        expert_sigma = self.sigma * np.exp(
+        self.sigma = self.sigma * np.exp(
             (self.params.cs / self.params.damps)
             * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
 
-        return expert_sigma, self.pc, self.ps, self.count_eval
+        return self.sigma, self.ps, self.pc
 
     def stop(self):
         res = {}
