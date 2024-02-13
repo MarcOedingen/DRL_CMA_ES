@@ -47,11 +47,15 @@ def main():
             "static_imit_iter",
             "evolution_path_ps",
             "evolution_path_ps_imit",
+            "evolution_path_ps_imit_iter",
+            "evolution_path_pc",
+            "evolution_path_pc_imit",
+            "evolution_path_pc_imit_iter",
             "optuna",
             "optuna_imit",
             "eval",
         ],
-        default="static_imit_iter",
+        default="step_size_imit"
     )
     parser.add_argument(
         "--dimension",
@@ -92,13 +96,13 @@ def main():
         "--train_repeats",
         type=int,
         help="The number of repeats for the training functions",
-        default=1,
+        default=10,
     )
     parser.add_argument(
         "--test_repeats",
         type=int,
         help="The number of repeats for the test functions",
-        default=10,
+        default=25,
     )
     parser.add_argument(
         "--pre_train_repeats",
@@ -124,7 +128,7 @@ def main():
         "--seed",
         type=int,
         help="The seed for the random number generator",
-        default=213324,
+        default=7570,
     )
 
     subprocess.run(["python", "experiment_prep.py"], check=True)
@@ -142,6 +146,7 @@ def main():
             args.split,
             args.p_class,
             args.test_repeats,
+            args.seed,
         )
     elif args.algorithm == "eval":
         module = importlib.import_module("Results.Eval_Results")
@@ -223,6 +228,16 @@ def get_module_and_function(algorithm):
         "optuna_imit": ("Optuna.CMA_ES_Optuna_Imit", "run"),
         "evolution_path_ps": ("Environments.Evolution_Path.CMA_ES_PS_run", "run"),
         "evolution_path_ps_imit": ("Environments.Evolution_Path.CMA_ES_PS_Imit", "run"),
+        "evolution_path_ps_imit_iter": (
+            "Environments.Evolution_Path.CMA_ES_PS_Imit_Iter",
+            "run",
+        ),
+        "evolution_path_pc": ("Environments.Evolution_Path.CMA_ES_PC_run", "run"),
+        "evolution_path_pc_imit": ("Environments.Evolution_Path.CMA_ES_PC_Imit", "run"),
+        "evolution_path_pc_imit_iter": (
+            "Environments.Evolution_Path.CMA_ES_PC_Imit_Iter",
+            "run",
+        ),
         "eval": ("Results.Eval_Results", "run"),
     }
     return mapping.get(algorithm, ("", ""))

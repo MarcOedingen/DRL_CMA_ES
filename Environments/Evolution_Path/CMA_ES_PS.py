@@ -7,19 +7,17 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 
 def run_CMAES_PS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
     es = CMAES_PS(x_start, sigma)
-    start_state = np.array([objective_fct.dimension])
-    observations, actions, dones = [np.hstack((start_state, np.zeros(40 * 43)))], [], []
+    start_state = np.array([es.params.cs, np.sqrt(es.params.cs * (2 - es.params.cs) * es.params.mueff), sigma, objective_fct.dimension])
+    observations, actions, dones = [np.hstack((start_state, np.zeros(2*40)))], [], []
     hist_fit_vals = deque(np.zeros(40), maxlen=h)
-    hist_ps = deque([np.zeros(40) for _ in range(h)], maxlen=h)
     iteration = 0
     pad_size = 40 - objective_fct.dimension
-    cur_ps = np.zeros(objective_fct.dimension)
     while not es.stop():
         X = es.ask()
         fit = [objective_fct(x) for x in X]
-        intermediate_ps, ps, x_old, arx = es.tell1(X, fit)
+        ps, x_old, arx = es.tell1(X, fit)
         es.ps = ps
-        es.tell2(arx=arx, x_old=x_old, N=objective_fct.dimension)
+        sigma = es.tell2(arx=arx, x_old=x_old, N=objective_fct.dimension)
         f_best = np.min(fit)
         if iteration > 0:
             difference = np.clip(
@@ -28,36 +26,34 @@ def run_CMAES_PS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                 f_limit,
             )
             hist_fit_vals.append(difference)
-        hist_ps.append(
-            np.pad(cur_ps, (0, pad_size), "constant") if pad_size > 0 else cur_ps
-        )
         observations.append(
             np.concatenate(
                 [
+                    np.array([es.params.cs]),
+                    np.array([np.sqrt(es.params.cs * (2 - es.params.cs) * es.params.mueff)]),
+                    np.array([sigma]),
                     np.array([objective_fct.dimension]),
-                    np.pad(intermediate_ps, (0, pad_size), "constant")
-                    if pad_size > 0
-                    else intermediate_ps,
                     np.pad(ps, (0, pad_size), "constant") if pad_size > 0 else ps,
-                    np.array(hist_fit_vals),
-                    np.array(hist_ps).flatten(),
+                    np.array(hist_fit_vals)
                 ]
             )
         )
         actions.append(np.pad(ps, (0, pad_size), "constant") if pad_size > 0 else ps)
-        cur_ps = ps
         dones.append(False)
         iteration += 1
     dones[-1] = True
     return np.array(observations), np.array(actions), np.array(dones)
 
 
-def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
+def collect_expert_samples(
+    dimension, instance, split, p_class, x_start, sigma, bbob_functions
+):
+    p_class = p_class if split == "classes" else -1
     if os.path.isfile(
-        f"Environments/Evolution_Path/Samples/CMA_ES_PS_Samples_{dimension}D_{instance}I.npz"
+        f"Environments/Evolution_Path/Samples/CMA_ES_PS_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     ):
         data = np.load(
-            f"Environments/Evolution_Path/Samples/CMA_ES_PS_Samples_{dimension}D_{instance}I.npz"
+            f"Environments/Evolution_Path/Samples/CMA_ES_PS_Samples_{dimension}D_{instance}I_{p_class}C.npz"
         )
         return data
     observations, actions, dones = [], [], []
@@ -76,13 +72,13 @@ def collect_expert_samples(dimension, instance, x_start, sigma, bbob_functions):
         actions.extend(act)
         dones.extend(done)
     np.savez(
-        f"Environments/Evolution_Path/Samples/CMA_ES_PS_Samples_{dimension}D_{instance}I.npz",
+        f"Environments/Evolution_Path/Samples/CMA_ES_PS_Samples_{dimension}D_{instance}I_{p_class}C.npz",
         observations=observations,
         actions=actions,
         dones=dones,
     )
     return np.load(
-        f"Environments/Evolution_Path/Samples/CMA_ES_PS_Samples_{dimension}D_{instance}I.npz"
+        f"Environments/Evolution_Path/Samples/CMA_ES_PS_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     )
 
 
@@ -129,12 +125,11 @@ class CMAES_PS:
         )
 
         # Update evolution paths
-        intermediate_ps = np.dot(self.inv_sqrt_C, (self.x_mean - x_old)) / self.sigma
         expert_ps = (1 - self.params.cs) * self.ps + np.sqrt(
             self.params.cs * (2 - self.params.cs) * self.params.mueff
-        ) * intermediate_ps
+        ) * np.dot(self.inv_sqrt_C, (self.x_mean - x_old)) / self.sigma
 
-        return intermediate_ps, expert_ps, x_old, arx
+        return expert_ps, x_old, arx
 
     def tell2(self, arx, x_old, N):
         # Update evolution paths
@@ -162,6 +157,8 @@ class CMAES_PS:
             (self.params.cs / self.params.damps)
             * (np.linalg.norm(self.ps) / self.params.chiN - 1)
         )
+
+        return self.sigma
 
     def stop(self):
         res = {}

@@ -22,6 +22,7 @@ from Environments.Mu_Effective.CMA_ES_ME_Env import CMA_ES_ME
 from Environments.Learning_Rate.CMA_ES_C1_Env import CMA_ES_C1
 from Environments.Learning_Rate.CMA_ES_CM_Env import CMA_ES_CM
 from Environments.Evolution_Path.CMA_ES_PS_Env import CMA_ES_PS
+from Environments.Evolution_Path.CMA_ES_PC_Env import CMA_ES_PC
 
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.policies import ActorCriticPolicy
@@ -48,7 +49,7 @@ def set_reward_targets(optimum):
 def calc_reward(optimum, min_eval, reward_type, reward_targets):
     if reward_type == "log_opt":
         return -np.log(np.abs(min_eval - optimum))
-    if reward_targets[0] < min_eval:
+    if reward_targets[0] < min_eval or np.isnan(min_eval):
         return 0
     target_index = np.argwhere(reward_targets >= min_eval)[-1][0]
     return target_index + (reward_targets[target_index] - min_eval) / (
@@ -228,7 +229,7 @@ def train_load_model_imit(
         ),
         activation_fn=nn.Tanh
     )
-    ppo_model = PPO("MlpPolicy", train_env, ent_coef=1e-4, learning_rate=1e-5, policy_kwargs=policy_kwargs, verbose=0)
+    ppo_model = PPO("MlpPolicy", train_env, policy_kwargs=policy_kwargs, verbose=0)
     ppo_model.policy = custom_Actor_Critic_Policy(train_env)
     p_class = p_class if split == "classes" else -1
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
@@ -336,6 +337,14 @@ def get_env(env_name, test_func, x_start, reward_type, sigma):
         env = CMA_ES_PS(
             objective_funcs=[test_func],
             x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
+    elif env_name == "evolution_path_pc":
+        env = CMA_ES_PC(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
             sigma=sigma,
         )
     else:
