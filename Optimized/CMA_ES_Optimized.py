@@ -4,15 +4,16 @@ import numpy as np
 from tqdm import tqdm
 
 
-def run(dimension, x_start, sigma, instance, split, p_class, test_repeats):
+def run(dimension, x_start, sigma, instance, split, p_class, test_repeats, seed):
     print("---------------Running CMA-ES Optimized---------------")
     p_class = p_class if split == "classes" else -1
-    functions = g_utils.get_functions(
+    _, functions = g_utils.split_train_test(
         dimension=dimension,
         instance=instance,
         split=split,
         p_class=p_class,
-        repeats=test_repeats,
+        test_repeats=test_repeats,
+        random_state=seed,
     )
 
     results = []
