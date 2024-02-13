@@ -19,7 +19,7 @@ def run(
     p_class,
     seed,
 ):
-    print("---------------Running Optuna for static parameter learning---------------")
+    print("---------------Running Optuna for mu effective parameter learning---------------")
 
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,
@@ -33,17 +33,7 @@ def run(
 
     def objective(trial):
         params = {
-            "chiN": trial.suggest_float(
-                "chiN",
-                1,
-                8,
-            ),
             "mu_eff": trial.suggest_float("mu_eff", 2, 5),
-            "cc": trial.suggest_float("cc", 1e-3, 1),
-            "cs": trial.suggest_float("cs", 1e-10, 1),
-            "c1": trial.suggest_float("c1", 1e-4, 0.2),
-            "c_mu": trial.suggest_float("c_mu", 1e-4, 1e-1),
-            "damps": trial.suggest_float("damps", 1, 2),
         }
         try:
             objective_fvals = np.zeros(len(train_funcs))
@@ -70,7 +60,7 @@ def run(
             return -np.inf
 
     study = optuna.create_study(direction="maximize")
-    study.optimize(objective, n_trials=100, n_jobs=1)
+    study.optimize(objective, n_trials=5, n_jobs=1)
 
     random_best_param = np.random.choice(
         np.where(
@@ -79,8 +69,9 @@ def run(
     )
     best_params = study.trials[random_best_param].params
 
+    p_class = p_class if split == "classes" else -1
     np.savez(
-        f"Optuna/opt_params_{dimension}D_{instance}I_{p_class}C.npz",
+        f"Optuna/opt_me_params_{dimension}D_{instance}I_{p_class}C.npz",
         **best_params,
     )
 
@@ -129,7 +120,6 @@ def run(
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
-    p_class = p_class if split == "classes" else -1
     g_utils.save_results(
-        results=results, policy=f"optuna_{dimension}D_{instance}I_{p_class}C"
+        results=results, policy=f"optuna_me_{dimension}D_{instance}I_{p_class}C"
     )

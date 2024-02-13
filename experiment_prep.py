@@ -38,6 +38,16 @@ def prepare_experiment_folders():
                 print(f"Removed file: {samples_path}/{file}")
                 changes_made = True
 
+    for file in os.listdir("Optuna"):
+        if not file.endswith(".npz"):
+            continue
+        next_index = get_next_index(file[:-4], results_policies_dir)
+        new_file_name = f"{file[:-4]}_{next_index}.npz"
+        new_file_path = os.path.join(results_policies_dir, new_file_name)
+        os.rename(f"Optuna/{file}", new_file_path)
+        print(f"Moved file to: {new_file_path}")
+        changes_made = True
+
     if not changes_made:
         print("Nothing changed")
     else:

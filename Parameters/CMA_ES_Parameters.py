@@ -27,10 +27,17 @@ class CMAESParameters:
         self.lazy_gap_evals = 0.5 * N * self.lam * (self.c1 + self.cmu) ** -1 / N**2
 
     def set_params(self, params):
-        self.chiN = params["chiN"]
-        self.mueff = params["mu_eff"]
-        self.cc = params["cc"]
-        self.cs = params["cs"]
-        self.c1 = params["c1"]
-        self.cmu = params["c_mu"]
-        self.damps = params["damps"]
+        if "chiN" in params.keys():
+            self.chiN = params["chiN"]
+        if "mueff" in params.keys():
+            self.mueff = params["mueff"]
+        if "cc" in params.keys():
+            self.cc = params["cc"]
+        if "cs" in params.keys():
+            self.cs = params["cs"]
+        if "c1" in params.keys():
+            self.c1 = params["c1"]
+        if "cmu" in params.keys():
+            self.cmu = params["cmu"]
+        if "damps" in params.keys():
+            self.damps = params["damps"]
