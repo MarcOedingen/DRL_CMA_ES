@@ -195,7 +195,14 @@ def _choose_or_repeat(choice, choices, size):
 def train_load_model(
     policy_path, dimension, instance, split, p_class, train_env, max_evals, policy
 ):
-    ppo_model = PPO("MlpPolicy", train_env, verbose=0)
+    policy_kwargs = dict(
+        net_arch=dict(
+            pi=[512, 512],
+            vf=[512, 512]
+        ),
+        activation_fn=nn.Tanh
+    )
+    ppo_model = PPO("MlpPolicy", train_env, verbose=0, policy_kwargs=policy_kwargs)
     ppo_model.policy = policy
     p_class = p_class if split == "classes" else -1
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
