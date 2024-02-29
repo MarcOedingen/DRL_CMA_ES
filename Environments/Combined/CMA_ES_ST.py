@@ -125,11 +125,8 @@ class CMAES_ST:
 
     def ask(self):
         self._update_Eigensystem()
-        return self.x_mean + np.dot(
-            self.sigma
-            * np.sqrt(self.D)
-            * np.random.randn(self.params.lam, len(self.D)),
-            self.B.T,
+        return np.random.multivariate_normal(
+            self.x_mean, (self.sigma ** 2) * self.C, self.params.lam
         )
 
     def tell(self, arx, fit_vals):
@@ -178,18 +175,13 @@ class CMAES_ST:
         return self.sigma, self.ps, self.pc
 
     def stop(self):
-        res = {}
-        if self.count_eval <= 0:
-            return res
-        if self.count_eval >= self.max_f_evals:
-            res["maxfevals"] = self.max_f_evals
-        if self.condition_number > 1e14:
-            res["condition"] = self.condition_number
-        if len(self.fit_vals) > 1 and self.fit_vals[-1] - self.fit_vals[0] < 1e-12:
-            res["tolfun"] = 1e-12
-        if self.sigma * np.sqrt(max(self.D)) < 1e-11:
-            res["tolx"] = 1e-11
-        return res
+        return (self.count_eval > 0) and (
+                self.count_eval >= self.max_f_evals
+                or self.condition_number > 1e14
+                or len(self.fit_vals) > 1
+                and self.fit_vals[-1] - self.fit_vals[0] < 1e-12
+                or self.sigma * np.sqrt(max(self.D)) < 1e-11
+        )
 
     def _update_Eigensystem(self):
         if self.count_eval >= self.updated_eval + self.params.lazy_gap_evals:

@@ -455,6 +455,13 @@ def create_Transitions(data, n_train_funcs):
     obs = data["observations"][obs_indices]
     next_obs = data["observations"][next_obs_indices]
 
+    # Shuffle the data
+    """random_indices = np.random.permutation(len(obs))
+    obs = obs[random_indices]
+    next_obs = next_obs[random_indices]
+    acts = data["actions"][random_indices]
+    dones = data["dones"][random_indices]"""
+
     return Transitions(
         obs=obs,
         next_obs=next_obs,
