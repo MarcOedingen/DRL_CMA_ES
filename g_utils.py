@@ -24,6 +24,8 @@ from Environments.Learning_Rate.CMA_ES_CM_Env import CMA_ES_CM
 from Environments.Evolution_Path.CMA_ES_PS_Env import CMA_ES_PS
 from Environments.Evolution_Path.CMA_ES_PC_Env import CMA_ES_PC
 
+from Environments.ChiN.CMA_ES_IPOP_CN_Env import CMA_ES_IPOP_CN
+
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.policies import ActorCriticPolicy
 
@@ -236,7 +238,7 @@ def train_load_model_imit(
         ),
         activation_fn=nn.Tanh
     )
-    ppo_model = PPO("MlpPolicy", train_env, policy_kwargs=policy_kwargs, verbose=0)
+    ppo_model = PPO("MlpPolicy", train_env, policy_kwargs=policy_kwargs, n_steps=64, learning_rate=1e-5, ent_coef=1e-4, verbose=0)
     ppo_model.policy = custom_Actor_Critic_Policy(train_env)
     p_class = p_class if split == "classes" else -1
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
@@ -321,6 +323,13 @@ def get_env(env_name, test_func, x_start, reward_type, sigma):
         )
     elif env_name == "chin":
         env = CMA_ES_CN(
+            objective_funcs=[test_func],
+            x_start=x_start,
+            reward_type=reward_type,
+            sigma=sigma,
+        )
+    elif env_name == "chin_ipop":
+        env = CMA_ES_IPOP_CN(
             objective_funcs=[test_func],
             x_start=x_start,
             reward_type=reward_type,

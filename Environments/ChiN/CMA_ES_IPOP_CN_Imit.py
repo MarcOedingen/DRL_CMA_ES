@@ -3,8 +3,8 @@ import g_utils
 import numpy as np
 from imitation.algorithms import bc
 from gymnasium.wrappers import TimeLimit
-from Environments.Step_Size.CMA_ES_SS_Env import CMA_ES_SS
-from Environments.Step_Size.CMA_ES_SS import collect_expert_samples
+from Environments.ChiN.CMA_ES_IPOP_CN_Env import CMA_ES_IPOP_CN
+from Environments.ChiN.CMA_ES_IPOP_CN import collect_expert_samples
 
 
 def run(
@@ -22,7 +22,7 @@ def run(
     seed,
 ):
     print(
-        "---------------Running imitation learning for step-size adaptation---------------"
+        "---------------Running imitation learning for ChiN (ipop) adaptation---------------"
     )
     pre_train_funcs, _ = g_utils.split_train_test(
         dimension=dimension,
@@ -35,7 +35,7 @@ def run(
     )
 
     pre_train_env = TimeLimit(
-        CMA_ES_SS(
+        CMA_ES_IPOP_CN(
             objective_funcs=pre_train_funcs,
             x_start=x_start,
             sigma=sigma,
@@ -72,7 +72,7 @@ def run(
         ent_weight=1e-2
     )
 
-    policy_path = "Environments/Step_Size/Policies/policy_ss_imit"
+    policy_path = "Environments/ChiN/Policies/policy_ipop_cn_imit"
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
         print("Pre-training policy with expert samples...")
         bc_trainer.train(n_epochs=n_epochs)
@@ -88,7 +88,7 @@ def run(
     )
 
     train_env = TimeLimit(
-        CMA_ES_SS(
+        CMA_ES_IPOP_CN(
             objective_funcs=train_funcs,
             x_start=x_start,
             sigma=sigma,
@@ -114,12 +114,12 @@ def run(
         sigma=sigma,
         reward_type=reward_type,
         ppo_model=ppo_model,
-        env_name="step_size",
+        env_name="chin_ipop",
     )
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
     g_utils.save_results(
         results=results,
-        policy=f"ppo_policy_ss_imit_{dimension}D_{instance}I_{p_class}C",
+        policy=f"policy_ipop_cn_imit{dimension}D_{instance}I_{p_class}C",
     )
