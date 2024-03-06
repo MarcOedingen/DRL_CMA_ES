@@ -2,7 +2,6 @@ import argparse
 import importlib
 import subprocess
 
-
 def main():
     parser = argparse.ArgumentParser(description="Run different CMA-ES algorithms")
     parser.add_argument(
@@ -231,7 +230,7 @@ def get_module_and_function(algorithm):
         "chi_n_imit_iter": ("Environments.ChiN.CMA_ES_CN_Imit_Iter", "run"),
         "chin_n_ipop": ("Environments.ChiN.CMA_ES_IPOP_CN_run", "run"),
         "chin_n_ipop_imit": ("Environments.ChiN.CMA_ES_IPOP_CN_Imit", "run"),
-        "comb": ("Environments.Combined.CMA_ES_COMB", "run"),
+        "comb": ("Environments.Combined.CMA_ES_COMB_run", "run"),
         "comb_imit": ("Environments.Combined.CMA_ES_COMB_Imit", "run"),
         "comb_imit_iter": ("Environments.Combined.CMA_ES_COMB_Imit_Iter", "run"),
         "static": ("Environments.Combined.CMA_ES_ST_run", "run"),
