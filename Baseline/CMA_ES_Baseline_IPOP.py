@@ -7,20 +7,15 @@ from Parameters.CMA_ES_Parameters import CMAESParameters
 def runCMAES(objective_fct, x_start, sigma):
     es = CMAES(x_start, sigma)
     evaluations = 0
-    best_solution = np.inf
-    max_step_size = -np.inf
-    min_step_size = np.inf
-    while evaluations < 1e3 * objective_fct.dimension**2:
+    while evaluations <= 1e3 * objective_fct.dimension**2:
         X = es.ask()
         fit = [objective_fct(x) for x in X]
-        best_solution = min(best_solution, np.min(fit))
         es.tell(X, fit)
         evaluations += es.params.lam
-        min_step_size = min(min_step_size, es.sigma)
-        max_step_size = max(max_step_size, es.sigma)
         if es.stop():
-            es = CMAES(x_start, sigma, parameters=CMAESParameters(N=objective_fct.dimension, lam=int(2*es.params.lam)).to_dict())
-    return best_solution, es
+            params = CMAESParameters(N=objective_fct.dimension, lam=int(2*es.params.lam)).to_dict()
+            es = CMAES(x_start, sigma, parameters=params)
+    return es.fit_vals[0], evaluations
 
 class CMAES:
     def __init__(self, x_start, sigma, parameters={}):
@@ -172,5 +167,5 @@ def run(dimension, x_start, sigma, instance, split, p_class, test_repeats, seed)
     print(f"Mean difference of all test functions: {np.mean(means)} ± {np.std(means)}")
     p_class = p_class if split == "classes" else -1
     g_utils.save_results(
-        results=results, policy=f"baseline_{dimension}D_{instance}I_{p_class}C"
+        results=results, policy=f"baseline_ipop_{dimension}D_{instance}I_{p_class}C"
     )

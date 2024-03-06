@@ -11,6 +11,7 @@ def main():
         help="The dataset to use",
         choices=[
             "baseline",
+            "baseline_ipop",
             "optimized",
             "step_size",
             "step_size_imit",
@@ -62,7 +63,7 @@ def main():
             "optuna_dp",
             "eval",
         ],
-        default="optuna_chi_n"
+        default="baseline",
     )
     parser.add_argument(
         "--dimension",
@@ -103,7 +104,7 @@ def main():
         "--train_repeats",
         type=int,
         help="The number of repeats for the training functions",
-        default=10,
+        default=1,
     )
     parser.add_argument(
         "--test_repeats",
@@ -141,7 +142,7 @@ def main():
     subprocess.run(["python", "experiment_prep.py"], check=True)
 
     args = parser.parse_args()
-    if args.algorithm == "baseline" or args.algorithm == "optimized":
+    if args.algorithm == "baseline" or args.algorithm == "optimized" or args.algorithm == "baseline_ipop":
         module_path, function_name = get_module_and_function(args.algorithm)
         module = importlib.import_module(module_path)
         run_function = getattr(module, function_name)
@@ -182,6 +183,7 @@ def main():
 def get_module_and_function(algorithm):
     mapping = {
         "baseline": ("Baseline.CMA_ES_Baseline", "run"),
+        "baseline_ipop": ("Baseline.CMA_ES_Baseline_IPOP", "run"),
         "optimized": ("Optimized.CMA_ES_Optimized", "run"),
         "step_size": ("Environments.Step_Size.CMA_ES_SS_run", "run"),
         "step_size_imit": ("Environments.Step_Size.CMA_ES_SS_Imit", "run"),
