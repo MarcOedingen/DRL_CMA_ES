@@ -5,7 +5,7 @@ from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
-def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
+def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=4.6*np.power(10, 18)):
     es = CMAES_SS(x_start, sigma)
     start_state = np.array([sigma, np.linalg.norm(es.ps)])
     observations, actions, dones = (
@@ -30,7 +30,7 @@ def run_CMAES_SS(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
                 f_limit,
             )
             hist_fit_vals.append(difference)
-        hist_sigmas.append(curr_sigma)
+            hist_sigmas.append(curr_sigma)
         observations.append(
             np.concatenate(
                 [

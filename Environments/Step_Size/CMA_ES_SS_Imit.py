@@ -59,7 +59,7 @@ def run(
         n_train_funcs=len(pre_train_funcs),
     )
 
-    n_epochs = 10
+    n_epochs = 5
     batch_size = 64
 
     bc_trainer = bc.BC(
@@ -69,7 +69,7 @@ def run(
         policy=g_utils.custom_Actor_Critic_Policy(pre_train_env),
         rng=np.random.default_rng(seed),
         batch_size=batch_size,
-        ent_weight=1e-2
+        ent_weight=5e-2
     )
 
     policy_path = "Environments/Step_Size/Policies/policy_ss_imit"
