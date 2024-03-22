@@ -40,12 +40,11 @@ def run(dimension, x_start, sigma, instance, split, p_class, test_repeats, seed)
             )
             es = cma.CMAEvolutionStrategy(_x_start, sigma, {"verbose": -9})
             while not es.stop():
-                solutions = es.ask()
-                obj_values = [test_func(x) for x in solutions]
-                best_value = min(obj_values)
-                es.tell(solutions, obj_values)
+                X = es.ask()
+                fit = [test_func(x) for x in X]
+                es.tell(X, fit)
             grp_rewards[reward_index] = np.abs(
-                test_func.best_value() - best_value
+                test_func.best_value() - min(fit)
             )
             reward_index += 1
         results.append(
