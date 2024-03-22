@@ -238,7 +238,7 @@ def train_load_model_imit(
         ),
         activation_fn=nn.Tanh
     )
-    ppo_model = PPO("MlpPolicy", train_env, policy_kwargs=policy_kwargs, n_steps=64, learning_rate=1e-5, ent_coef=1e-4, verbose=0)
+    ppo_model = PPO("MlpPolicy", train_env, policy_kwargs=policy_kwargs, learning_rate=1e-5, ent_coef=1e-4, verbose=0)
     ppo_model.policy = custom_Actor_Critic_Policy(train_env)
     p_class = p_class if split == "classes" else -1
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
