@@ -3,6 +3,7 @@ import numpy as np
 from gymnasium.wrappers import TimeLimit
 from Environments.Evolution_Path.CMA_ES_PC_Env import CMA_ES_PC
 
+
 def run(
     dimension,
     x_start,
@@ -17,7 +18,9 @@ def run(
     p_class,
     seed,
 ):
-    print("---------------Running learning for evolution path (pc) adaptation---------------")
+    print(
+        "---------------Running learning for evolution path (pc) adaptation---------------"
+    )
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,
         instance=instance,

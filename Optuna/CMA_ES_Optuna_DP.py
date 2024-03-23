@@ -19,7 +19,9 @@ def run(
     p_class,
     seed,
 ):
-    print("---------------Running Optuna for damping (dp) parameter learning---------------")
+    print(
+        "---------------Running Optuna for damping (dp) parameter learning---------------"
+    )
 
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,

@@ -5,10 +5,22 @@ from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
-def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=4.6*np.power(10, 18)):
+def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=4.6 * np.power(10, 18)):
     es = CMAES_COMB(x_start, sigma)
-    start_state = np.array([es.params.chiN, es.params.cc, es.params.cs, es.params.c1, es.params.cmu, es.params.mueff, objective_fct.dimension, sigma, 0])
-    observations, actions, dones = [np.hstack((start_state, np.zeros(9*40)))], [], []
+    start_state = np.array(
+        [
+            es.params.chiN,
+            es.params.cc,
+            es.params.cs,
+            es.params.c1,
+            es.params.cmu,
+            es.params.mueff,
+            objective_fct.dimension,
+            sigma,
+            0,
+        ]
+    )
+    observations, actions, dones = [np.hstack((start_state, np.zeros(9 * 40)))], [], []
     hist_fit_vals = deque(np.zeros(h), maxlen=h)
     hist_chiN = deque(np.zeros(h), maxlen=h)
     hist_cc = deque(np.zeros(h), maxlen=h)
@@ -65,7 +77,18 @@ def run_CMAES_COMB(objective_fct, x_start, sigma, h=40, f_limit=4.6*np.power(10,
                 ]
             )
         )
-        actions.append([es.params.chiN, es.params.cc, es.params.cs, es.params.c1, es.params.cmu, es.params.mueff, sigma, h_sig])
+        actions.append(
+            [
+                es.params.chiN,
+                es.params.cc,
+                es.params.cs,
+                es.params.c1,
+                es.params.cmu,
+                es.params.mueff,
+                sigma,
+                h_sig,
+            ]
+        )
         dones.append(False)
         iteration += 1
     dones[-1] = True
@@ -108,6 +131,7 @@ def collect_expert_samples(
         f"Environments/Combined/Samples/CMA_ES_COMB_Samples_{dimension}D_{instance}I_{p_class}C.npz"
     )
 
+
 class CMAES_COMB:
     def __init__(self, x_start, sigma):
         N = len(x_start)
@@ -132,7 +156,7 @@ class CMAES_COMB:
     def ask(self):
         self._update_Eigensystem()
         return np.random.multivariate_normal(
-            self.x_mean, (self.sigma ** 2) * self.C, self.params.lam
+            self.x_mean, (self.sigma**2) * self.C, self.params.lam
         )
 
     def tell(self, arx, fit_vals):
@@ -186,11 +210,11 @@ class CMAES_COMB:
 
     def stop(self):
         return (self.count_eval > 0) and (
-                self.count_eval >= self.max_f_evals
-                or self.condition_number > 1e14
-                or len(self.fit_vals) > 1
-                and self.fit_vals[-1] - self.fit_vals[0] < 1e-12
-                or self.sigma * np.sqrt(max(self.D)) < 1e-11
+            self.count_eval >= self.max_f_evals
+            or self.condition_number > 1e14
+            or len(self.fit_vals) > 1
+            and self.fit_vals[-1] - self.fit_vals[0] < 1e-12
+            or self.sigma * np.sqrt(max(self.D)) < 1e-11
         )
 
     def _update_Eigensystem(self):

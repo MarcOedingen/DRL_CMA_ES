@@ -5,7 +5,7 @@ from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
-def run_CMAES_ME(objective_fct, x_start, sigma, h=40, f_limit=4.6*np.power(10, 18)):
+def run_CMAES_ME(objective_fct, x_start, sigma, h=40, f_limit=4.6 * np.power(10, 18)):
     es = CMAES_ME(x_start, sigma)
     start_state = np.array(
         [
@@ -111,7 +111,7 @@ class CMAES_ME:
     def ask(self):
         self._update_Eigensystem()
         return np.random.multivariate_normal(
-            self.x_mean, (self.sigma ** 2) * self.C, self.params.lam
+            self.x_mean, (self.sigma**2) * self.C, self.params.lam
         )
 
     def tell(self, arx, fit_vals):
@@ -158,11 +158,11 @@ class CMAES_ME:
 
     def stop(self):
         return (self.count_eval > 0) and (
-                self.count_eval >= self.max_f_evals
-                or self.condition_number > 1e14
-                or len(self.fit_vals) > 1
-                and self.fit_vals[-1] - self.fit_vals[0] < 1e-12
-                or self.sigma * np.sqrt(max(self.D)) < 1e-11
+            self.count_eval >= self.max_f_evals
+            or self.condition_number > 1e14
+            or len(self.fit_vals) > 1
+            and self.fit_vals[-1] - self.fit_vals[0] < 1e-12
+            or self.sigma * np.sqrt(max(self.D)) < 1e-11
         )
 
     def _update_Eigensystem(self):

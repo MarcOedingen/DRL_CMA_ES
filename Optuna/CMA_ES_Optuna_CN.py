@@ -33,7 +33,11 @@ def run(
 
     def objective(trial):
         params = {
-            "chiN": trial.suggest_float("chiN", 1, 8,),
+            "chiN": trial.suggest_float(
+                "chiN",
+                1,
+                8,
+            ),
         }
         try:
             objective_fvals = np.zeros(len(train_funcs))

@@ -29,7 +29,7 @@ class CMA_ES_ME(gymnasium.Env):
 
         self.iteration = 0
         self.stop = False
-        self._f_limit = 4.6*np.power(10, 18)
+        self._f_limit = 4.6 * np.power(10, 18)
         self._f_targets = []
 
         self.last_achieved = 0

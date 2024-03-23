@@ -43,9 +43,7 @@ def run(dimension, x_start, sigma, instance, split, p_class, test_repeats, seed)
                 X = es.ask()
                 fit = [test_func(x) for x in X]
                 es.tell(X, fit)
-            grp_rewards[reward_index] = np.abs(
-                test_func.best_value() - min(fit)
-            )
+            grp_rewards[reward_index] = np.abs(test_func.best_value() - min(fit))
             reward_index += 1
         results.append(
             {

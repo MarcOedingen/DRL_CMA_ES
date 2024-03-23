@@ -19,7 +19,9 @@ def run(
     p_class,
     seed,
 ):
-    print("---------------Running Optuna for learning rate (c1) parameter learning---------------")
+    print(
+        "---------------Running Optuna for learning rate (c1) parameter learning---------------"
+    )
 
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,

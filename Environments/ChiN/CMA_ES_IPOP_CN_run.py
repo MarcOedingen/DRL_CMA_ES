@@ -3,6 +3,7 @@ import numpy as np
 from gymnasium.wrappers import TimeLimit
 from Environments.ChiN.CMA_ES_IPOP_CN_Env import CMA_ES_IPOP_CN
 
+
 def run(
     dimension,
     x_start,

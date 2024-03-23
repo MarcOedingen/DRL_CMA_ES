@@ -2,6 +2,7 @@ import argparse
 import importlib
 import subprocess
 
+
 def main():
     parser = argparse.ArgumentParser(description="Run different CMA-ES algorithms")
     parser.add_argument(
@@ -143,7 +144,11 @@ def main():
     subprocess.run(["python3", "experiment_prep.py"], check=True)
 
     args = parser.parse_args()
-    if args.algorithm == "baseline" or args.algorithm == "optimized" or args.algorithm == "baseline_ipop":
+    if (
+        args.algorithm == "baseline"
+        or args.algorithm == "optimized"
+        or args.algorithm == "baseline_ipop"
+    ):
         module_path, function_name = get_module_and_function(args.algorithm)
         module = importlib.import_module(module_path)
         run_function = getattr(module, function_name)

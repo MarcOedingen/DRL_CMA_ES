@@ -33,7 +33,11 @@ def run(
 
     def objective(trial):
         params = {
-            "chiN": trial.suggest_float("chiN", 1, 8,),
+            "chiN": trial.suggest_float(
+                "chiN",
+                1,
+                8,
+            ),
             "mu_eff": trial.suggest_float("mu_eff", 2, 5),
             "cc": trial.suggest_float("cc", 1e-3, 1),
             "cs": trial.suggest_float("cs", 1e-10, 1),

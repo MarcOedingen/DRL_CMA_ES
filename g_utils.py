@@ -65,10 +65,7 @@ def custom_Actor_Critic_Policy(env):
     return ActorCriticPolicy(
         observation_space=env.observation_space,
         action_space=env.action_space,
-        net_arch=dict(
-            pi=[512, 512],
-            vf=[512, 512]
-        ),
+        net_arch=dict(pi=[512, 512], vf=[512, 512]),
         activation_fn=nn.Tanh,
         lr_schedule=lambda _: th.finfo(th.float32).max,
     )
@@ -198,11 +195,7 @@ def train_load_model(
     policy_path, dimension, instance, split, p_class, train_env, max_evals, policy
 ):
     policy_kwargs = dict(
-        net_arch=dict(
-            pi=[512, 512],
-            vf=[512, 512]
-        ),
-        activation_fn=nn.Tanh
+        net_arch=dict(pi=[512, 512], vf=[512, 512]), activation_fn=nn.Tanh
     )
     ppo_model = PPO("MlpPolicy", train_env, verbose=0, policy_kwargs=policy_kwargs)
     ppo_model.policy = policy
@@ -232,18 +225,23 @@ def train_load_model_imit(
     policy_path, dimension, instance, split, p_class, train_env, max_evals, bc_policy
 ):
     policy_kwargs = dict(
-        net_arch=dict(
-            pi=[512, 512],
-            vf=[512, 512]
-        ),
-        activation_fn=nn.Tanh
+        net_arch=dict(pi=[512, 512], vf=[512, 512]), activation_fn=nn.Tanh
     )
-    ppo_model = PPO("MlpPolicy", train_env, policy_kwargs=policy_kwargs, learning_rate=1e-5, ent_coef=1e-4, verbose=0)
+    ppo_model = PPO(
+        "MlpPolicy",
+        train_env,
+        policy_kwargs=policy_kwargs,
+        learning_rate=1e-5,
+        ent_coef=1e-4,
+        verbose=0,
+    )
     ppo_model.policy = custom_Actor_Critic_Policy(train_env)
     p_class = p_class if split == "classes" else -1
     if not os.path.exists(f"{policy_path}_{dimension}D_{instance}I_{p_class}C.pkl"):
         print("Continue training the policy...")
-        bc_policy_parameters = {name: param.data for name, param in bc_policy.named_parameters()}
+        bc_policy_parameters = {
+            name: param.data for name, param in bc_policy.named_parameters()
+        }
         ppo_model.policy.load_state_dict(bc_policy_parameters)
         ppo_model.learn(
             total_timesteps=max_evals,

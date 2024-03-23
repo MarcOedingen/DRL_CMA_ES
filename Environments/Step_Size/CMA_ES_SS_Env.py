@@ -39,7 +39,10 @@ class CMA_ES_SS(gymnasium.Env):
 
         # Run one iteration of CMA-ES
         X = self.cma_es.ask()
-        fit = [self.objective_funcs[self.curr_index % len(self.objective_funcs)](x) for x in X]
+        fit = [
+            self.objective_funcs[self.curr_index % len(self.objective_funcs)](x)
+            for x in X
+        ]
         expert_sigma, ps = self.cma_es.tell(X, fit)
 
         self.last_achieved = np.min(fit)

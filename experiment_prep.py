@@ -1,6 +1,7 @@
 import os
 import re
 
+
 def prepare_experiment_folders():
     print("------------------ Preparing experiment folders ------------------")
 
@@ -42,6 +43,7 @@ def prepare_experiment_folders():
         print(f"Moved file to: {new_file_path}")
     print("All experiment folders are prepared")
 
+
 def get_next_index(file_name, directory):
     pattern = re.compile(re.escape(file_name) + r"_(\d+)")
     max_index = -1
@@ -51,5 +53,6 @@ def get_next_index(file_name, directory):
             index = int(match.group(1))
             max_index = max(max_index, index)
     return max_index + 1
+
 
 prepare_experiment_folders()

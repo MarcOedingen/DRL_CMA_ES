@@ -34,7 +34,9 @@ class CMA_ES_ST(gymnasium.Env):
         self.hist_mueff = deque(np.zeros(self.h), maxlen=self.h)
 
         self.action_space = gymnasium.spaces.Box(
-            low=np.array([1, 1, 1e-10, 1e-3, 1e-4, 1e-4, 2]), high=np.array([8, 2, 1, 1, 0.2, 0.1, 5]), dtype=np.float64
+            low=np.array([1, 1, 1e-10, 1e-3, 1e-4, 1e-4, 2]),
+            high=np.array([8, 2, 1, 1, 0.2, 0.1, 5]),
+            dtype=np.float64,
         )
         self.observation_space = gymnasium.spaces.Box(
             low=-np.inf, high=np.inf, shape=(8 + 8 * self.h,), dtype=np.float64
@@ -42,13 +44,21 @@ class CMA_ES_ST(gymnasium.Env):
 
         self.iteration = 0
         self.stop = False
-        self._f_limit = 4.6*np.power(10, 18)
+        self._f_limit = 4.6 * np.power(10, 18)
         self._f_targets = []
 
         self.last_achieved = 0
 
     def step(self, action):
-        new_ChiN, new_damps, new_cs, new_cc, new_c1, new_cmu, new_mueff = action[0], action[1], action[2], action[3], action[4], action[5], action[6]
+        new_ChiN, new_damps, new_cs, new_cc, new_c1, new_cmu, new_mueff = (
+            action[0],
+            action[1],
+            action[2],
+            action[3],
+            action[4],
+            action[5],
+            action[6],
+        )
         self.cma_es.params.chiN = new_ChiN
         self.cma_es.params.damps = new_damps
         self.cma_es.params.cs = new_cs
@@ -110,7 +120,13 @@ class CMA_ES_ST(gymnasium.Env):
                 np.array([new_c1]),
                 np.array([new_cmu]),
                 np.array([new_mueff]),
-                np.array([self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension]),
+                np.array(
+                    [
+                        self.objective_funcs[
+                            self.curr_index % len(self.objective_funcs)
+                        ].dimension
+                    ]
+                ),
                 np.array(self.hist_fit_vals),
                 np.array(self.hist_ChiN),
                 np.array(self.hist_damps),
@@ -198,7 +214,13 @@ class CMA_ES_ST(gymnasium.Env):
                     np.array([self.curr_c1]),
                     np.array([self.curr_cmu]),
                     np.array([self.curr_mueff]),
-                    np.array([self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension]),
+                    np.array(
+                        [
+                            self.objective_funcs[
+                                self.curr_index % len(self.objective_funcs)
+                            ].dimension
+                        ]
+                    ),
                     np.array(self.hist_fit_vals),
                     np.array(self.hist_ChiN),
                     np.array(self.hist_damps),

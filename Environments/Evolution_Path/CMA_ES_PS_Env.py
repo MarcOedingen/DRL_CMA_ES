@@ -28,7 +28,7 @@ class CMA_ES_PS(gymnasium.Env):
 
         self.iteration = 0
         self.stop = False
-        self._f_limit = 4.6*np.power(10, 18)
+        self._f_limit = 4.6 * np.power(10, 18)
         self._f_targets = []
 
         self.last_achieved = 0
@@ -72,8 +72,8 @@ class CMA_ES_PS(gymnasium.Env):
                 np.log(
                     np.abs(
                         (
-                                self.last_achieved
-                                - self.hist_fit_vals[len(self.hist_fit_vals) - 1]
+                            self.last_achieved
+                            - self.hist_fit_vals[len(self.hist_fit_vals) - 1]
                         )
                     )
                 ),
@@ -85,11 +85,19 @@ class CMA_ES_PS(gymnasium.Env):
         new_state = np.concatenate(
             [
                 np.array([self.cma_es.params.cs]),
-                np.array([np.sqrt(self.cma_es.params.cs * (2 - self.cma_es.params.cs) * self.cma_es.params.mueff)]),
+                np.array(
+                    [
+                        np.sqrt(
+                            self.cma_es.params.cs
+                            * (2 - self.cma_es.params.cs)
+                            * self.cma_es.params.mueff
+                        )
+                    ]
+                ),
                 np.array([sigma]),
                 np.array([self.objective_funcs[self.curr_index].dimension]),
                 np.pad(new_ps, (0, pad_size), "constant") if pad_size > 0 else new_ps,
-                np.array(self.hist_fit_vals)
+                np.array(self.hist_fit_vals),
             ]
         )
 
@@ -119,7 +127,7 @@ class CMA_ES_PS(gymnasium.Env):
         self._f_targets = g_utils.set_reward_targets(
             self.objective_funcs[
                 self.curr_index % len(self.objective_funcs)
-                ].best_value()
+            ].best_value()
         )
         x_start = (
             np.zeros(
@@ -160,13 +168,19 @@ class CMA_ES_PS(gymnasium.Env):
                     ),
                     np.pad(
                         self.curr_ps,
-                        (0, 40 - self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension),
+                        (
+                            0,
+                            40
+                            - self.objective_funcs[
+                                self.curr_index % len(self.objective_funcs)
+                            ].dimension,
+                        ),
                         "constant",
                     ),
                     np.zeros(40),
                 )
             ),
-            {}
+            {},
         )
 
     def render(self):

@@ -13,9 +13,12 @@ def runCMAES(objective_fct, x_start, sigma):
         es.tell(X, fit)
         evaluations += es.params.lam
         if es.stop():
-            params = CMAESParameters(N=objective_fct.dimension, lam=int(2*es.params.lam)).to_dict()
+            params = CMAESParameters(
+                N=objective_fct.dimension, lam=int(2 * es.params.lam)
+            ).to_dict()
             es = CMAES(x_start, sigma, parameters=params)
     return es.fit_vals[0], evaluations
+
 
 class CMAES:
     def __init__(self, x_start, sigma, parameters={}):

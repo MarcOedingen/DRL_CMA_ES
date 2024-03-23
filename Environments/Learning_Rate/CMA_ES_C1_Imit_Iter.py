@@ -61,7 +61,7 @@ def run(
         index_split = len(train_funcs) * (i + 1) - 1
         transition_splits.append(
             transitions[
-            int(trans_split_indices[curr_index]): trans_split_indices[index_split]
+                int(trans_split_indices[curr_index]) : trans_split_indices[index_split]
             ]
         )
         curr_index = index_split
@@ -83,11 +83,18 @@ def run(
         ),
         activation_fn=nn.Tanh,
     )
-    ppo_model = PPO("MlpPolicy", train_env, ent_coef=1e-4, learning_rate=1e-5, policy_kwargs=policy_kwargs, verbose=0)
+    ppo_model = PPO(
+        "MlpPolicy",
+        train_env,
+        ent_coef=1e-4,
+        learning_rate=1e-5,
+        policy_kwargs=policy_kwargs,
+        verbose=0,
+    )
     ppo_model.policy = g_utils.custom_Actor_Critic_Policy(train_env)
 
     policy = None
-    max_evals = len(train_funcs) * int(1e3) * dimension ** 2
+    max_evals = len(train_funcs) * int(1e3) * dimension**2
     batch_size = 64
     ent_weight = 5e-2
 
@@ -107,7 +114,9 @@ def run(
         )
 
         bc_trainer.train(n_epochs=int(np.ceil(5 / np.power(2, np.sqrt(i)))))
-        bc_policy_parameters = {name: param.data for name, param in bc_trainer.policy.named_parameters()}
+        bc_policy_parameters = {
+            name: param.data for name, param in bc_trainer.policy.named_parameters()
+        }
         ppo_model.policy.load_state_dict(bc_policy_parameters)
 
         ppo_model.learn(
@@ -126,13 +135,19 @@ def run(
             ),
             max_episode_steps=max_eps_steps,
         )
-        ppo_model.env = stable_baselines3.common.vec_env.DummyVecEnv([lambda: train_env])
-        ppo_model.learning_rate = ppo_model.learning_rate * np.sqrt((iterations - 1) / (iterations * (i + 1)))
-        ppo_model.ent_coef = ppo_model.ent_coef * np.sqrt((iterations - 1) / (iterations * (i + 1)))
+        ppo_model.env = stable_baselines3.common.vec_env.DummyVecEnv(
+            [lambda: train_env]
+        )
+        ppo_model.learning_rate = ppo_model.learning_rate * np.sqrt(
+            (iterations - 1) / (iterations * (i + 1))
+        )
+        ppo_model.ent_coef = ppo_model.ent_coef * np.sqrt(
+            (iterations - 1) / (iterations * (i + 1))
+        )
 
     with open(
-            f"Environments/Learning_Rate/Policies/ppo_policy_c1_imit_iter_{dimension}D_{instance}I_{p_class}C.pkl",
-            "wb",
+        f"Environments/Learning_Rate/Policies/ppo_policy_c1_imit_iter_{dimension}D_{instance}I_{p_class}C.pkl",
+        "wb",
     ) as f:
         pickle.dump(policy, f)
 

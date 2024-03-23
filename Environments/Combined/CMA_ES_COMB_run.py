@@ -18,7 +18,9 @@ def run(
     p_class,
     seed,
 ):
-    print("---------------Running learning for variable parameter adaptation---------------")
+    print(
+        "---------------Running learning for variable parameter adaptation---------------"
+    )
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,
         instance=instance,

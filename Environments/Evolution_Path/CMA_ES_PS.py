@@ -5,10 +5,17 @@ from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
-def run_CMAES_PS(objective_fct, x_start, sigma, h=40, f_limit=4.6*np.power(10, 18)):
+def run_CMAES_PS(objective_fct, x_start, sigma, h=40, f_limit=4.6 * np.power(10, 18)):
     es = CMAES_PS(x_start, sigma)
-    start_state = np.array([es.params.cs, np.sqrt(es.params.cs * (2 - es.params.cs) * es.params.mueff), sigma, objective_fct.dimension])
-    observations, actions, dones = [np.hstack((start_state, np.zeros(2*40)))], [], []
+    start_state = np.array(
+        [
+            es.params.cs,
+            np.sqrt(es.params.cs * (2 - es.params.cs) * es.params.mueff),
+            sigma,
+            objective_fct.dimension,
+        ]
+    )
+    observations, actions, dones = [np.hstack((start_state, np.zeros(2 * 40)))], [], []
     hist_fit_vals = deque(np.zeros(40), maxlen=h)
     iteration = 0
     pad_size = 40 - objective_fct.dimension
@@ -30,11 +37,13 @@ def run_CMAES_PS(objective_fct, x_start, sigma, h=40, f_limit=4.6*np.power(10, 1
             np.concatenate(
                 [
                     np.array([es.params.cs]),
-                    np.array([np.sqrt(es.params.cs * (2 - es.params.cs) * es.params.mueff)]),
+                    np.array(
+                        [np.sqrt(es.params.cs * (2 - es.params.cs) * es.params.mueff)]
+                    ),
                     np.array([sigma]),
                     np.array([objective_fct.dimension]),
                     np.pad(ps, (0, pad_size), "constant") if pad_size > 0 else ps,
-                    np.array(hist_fit_vals)
+                    np.array(hist_fit_vals),
                 ]
             )
         )
@@ -105,7 +114,7 @@ class CMAES_PS:
     def ask(self):
         self._update_Eigensystem()
         return np.random.multivariate_normal(
-            self.x_mean, (self.sigma ** 2) * self.C, self.params.lam
+            self.x_mean, (self.sigma**2) * self.C, self.params.lam
         )
 
     def tell1(self, arx, fit_vals):
@@ -159,11 +168,11 @@ class CMAES_PS:
 
     def stop(self):
         return (self.count_eval > 0) and (
-                self.count_eval >= self.max_f_evals
-                or self.condition_number > 1e14
-                or len(self.fit_vals) > 1
-                and self.fit_vals[-1] - self.fit_vals[0] < 1e-12
-                or self.sigma * np.sqrt(max(self.D)) < 1e-11
+            self.count_eval >= self.max_f_evals
+            or self.condition_number > 1e14
+            or len(self.fit_vals) > 1
+            and self.fit_vals[-1] - self.fit_vals[0] < 1e-12
+            or self.sigma * np.sqrt(max(self.D)) < 1e-11
         )
 
     def _update_Eigensystem(self):

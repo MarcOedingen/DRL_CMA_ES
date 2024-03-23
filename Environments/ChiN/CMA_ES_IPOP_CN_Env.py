@@ -30,7 +30,7 @@ class CMA_ES_IPOP_CN(gymnasium.Env):
 
         self.iteration = 0
         self.stop = False
-        self._f_limit = 4.6*np.power(10, 18)
+        self._f_limit = 4.6 * np.power(10, 18)
         self._f_targets = []
 
         self.last_achieved = 0
@@ -49,14 +49,17 @@ class CMA_ES_IPOP_CN(gymnasium.Env):
         self.last_achieved = np.min(fit)
 
         if self.cma_es.stop():
-            params = CMAESParameters(N=self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension,
-                                     lam=int(2*self.cma_es.params.lam)).to_dict()
+            params = CMAESParameters(
+                N=self.objective_funcs[
+                    self.curr_index % len(self.objective_funcs)
+                ].dimension,
+                lam=int(2 * self.cma_es.params.lam),
+            ).to_dict()
             self.cma_es = CMAES_IPOP_CN(
                 self.get_x_start(), self.sigma, parameters=params
             )
             new_ChiN = self.cma_es.params.chiN
             self.iteration = 0
-
 
         reward = g_utils.calc_reward(
             optimum=self.objective_funcs[self.curr_index].best_value(),
@@ -70,7 +73,14 @@ class CMA_ES_IPOP_CN(gymnasium.Env):
         # Terminated if all functions have been evaluated
         terminated = self.stop = self.curr_index >= len(self.objective_funcs)
         # Truncated if the current function has been evaluated
-        truncated = self.evaluations >= 1e3 * self.objective_funcs[self.curr_index % len(self.objective_funcs)].dimension**2
+        truncated = (
+            self.evaluations
+            >= 1e3
+            * self.objective_funcs[
+                self.curr_index % len(self.objective_funcs)
+            ].dimension
+            ** 2
+        )
 
         # Update history
         if self.iteration > 0:
