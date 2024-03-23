@@ -19,7 +19,7 @@ do
     do
       for seed in "${seeds[@]}"
       do
-          python3 main.py --algorithm $algorithm --dimension $dimension --x_start $x_start --reward_type $reward_type --sigma $sigma --instance $instance --max_episode_steps $max_episode_steps --train_repeats $train_repeats --test_repeats $test_repeats --pre_train_repeats $pre_train_repeats --split $split --p_class $p_class --seed $seed
+          python main.py --algorithm $algorithm --dimension $dimension --x_start $x_start --reward_type $reward_type --sigma $sigma --instance $instance --max_episode_steps $max_episode_steps --train_repeats $train_repeats --test_repeats $test_repeats --pre_train_repeats $pre_train_repeats --split $split --p_class $p_class --seed $seed
       done
     done
 done

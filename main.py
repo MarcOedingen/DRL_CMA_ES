@@ -141,7 +141,7 @@ def main():
         default=7570,
     )
 
-    subprocess.run(["python3", "experiment_prep.py"], check=True)
+    subprocess.run(["python", "experiment_prep.py"], check=True)
 
     args = parser.parse_args()
     if (
