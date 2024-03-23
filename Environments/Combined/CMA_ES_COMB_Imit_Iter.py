@@ -36,7 +36,7 @@ def run(
         random_state=seed,
     )
 
-    iterations = 5
+    iterations = 2
 
     expert_samples = collect_expert_samples(
         dimension=dimension,
@@ -87,6 +87,8 @@ def run(
 
     policy = None
     max_evals = len(train_funcs) * int(1e3) * dimension ** 2
+    batch_size = 64
+    ent_weight = 5e-2
 
     for i in range(iterations):
         print(f"Training policy in iteration {i + 1}...")
@@ -99,10 +101,11 @@ def run(
             policy=g_utils.custom_Actor_Critic_Policy(train_env)
             if policy is None
             else policy,
-            batch_size=64,
+            batch_size=batch_size,
+            ent_weight=ent_weight,
         )
 
-        bc_trainer.train(n_epochs=int(np.ceil(10 / np.power(2, np.sqrt(i)))))
+        bc_trainer.train(n_epochs=int(np.ceil(5 / np.power(2, np.sqrt(i)))))
         bc_policy_parameters = {name: param.data for name, param in bc_trainer.policy.named_parameters()}
         ppo_model.policy.load_state_dict(bc_policy_parameters)
 
@@ -123,6 +126,8 @@ def run(
             max_episode_steps=max_eps_steps,
         )
         ppo_model.env = stable_baselines3.common.vec_env.DummyVecEnv([lambda: train_env])
+        ppo_model.learning_rate = ppo_model.learning_rate * np.sqrt((iterations - 1) / (iterations * (i + 1)))
+        ppo_model.ent_coef = ppo_model.ent_coef * np.sqrt((iterations - 1) / (iterations * (i + 1)))
 
     with open(
             f"Environments/Combined/Policies/ppo_policy_comb_imit_iter_{dimension}D_{instance}I_{p_class}C.pkl",

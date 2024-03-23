@@ -6,9 +6,8 @@ from stable_baselines3 import PPO
 from imitation.algorithms import bc
 import stable_baselines3.common.vec_env
 from gymnasium.wrappers import TimeLimit
-from Environments.Decay_Rate.CMA_ES_CS_Env import CMA_ES_CS
-from Environments.Decay_Rate.CMA_ES_CS import collect_expert_samples
-
+from Environments.Evolution_Path.CMA_ES_PC_Env import CMA_ES_PC
+from Environments.Evolution_Path.CMA_ES_PC import collect_expert_samples
 
 def run(
     dimension,
@@ -25,7 +24,7 @@ def run(
     seed,
 ):
     print(
-        "---------------Running iterative imitation learning for decay-rate (cs) adaptation---------------"
+        "---------------Running iterative imitation learning for evolution path (pc) adaption---------------"
     )
     train_funcs, test_funcs = g_utils.split_train_test(
         dimension=dimension,
@@ -68,7 +67,7 @@ def run(
 
     np.random.shuffle(train_funcs)
     train_env = TimeLimit(
-        CMA_ES_CS(
+        CMA_ES_PC(
             objective_funcs=train_funcs,
             x_start=x_start,
             sigma=sigma,
@@ -118,7 +117,7 @@ def run(
 
         np.random.shuffle(train_funcs)
         train_env = TimeLimit(
-            CMA_ES_CS(
+            CMA_ES_PC(
                 objective_funcs=train_funcs,
                 x_start=x_start,
                 sigma=sigma,
@@ -131,7 +130,7 @@ def run(
         ppo_model.ent_coef = ppo_model.ent_coef * np.sqrt((iterations - 1) / (iterations * (i + 1)))
 
     with open(
-            f"Environments/Decay_Rate/Policies/ppo_policy_cs_imit_iter_{dimension}D_{instance}I_{p_class}C.pkl",
+            f"Environments/Evolution_Path/Policies/ppo_policy_pc_imit_iter_{dimension}D_{instance}I_{p_class}C.pkl",
             "wb",
     ) as f:
         pickle.dump(policy, f)
@@ -142,7 +141,7 @@ def run(
         sigma=sigma,
         reward_type=reward_type,
         ppo_model=ppo_model,
-        env_name="decay_rate_cs",
+        env_name="evolution_path_pc",
     )
     g_utils.print_pretty_table(results=results)
     means = [row["stats"][0] for row in results]
@@ -150,5 +149,5 @@ def run(
     p_class = p_class if split == "classes" else -1
     g_utils.save_results(
         results=results,
-        policy=f"ppo_policy_cs_imit_iter_{dimension}D_{instance}I_{p_class}C",
+        policy=f"ppo_policy_pc_imit_iter_{dimension}D_{instance}I_{p_class}C",
     )

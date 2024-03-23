@@ -5,7 +5,7 @@ from collections import deque
 from Parameters.CMA_ES_Parameters import CMAESParameters
 
 
-def run_CMAES_CM(objective_fct, x_start, sigma, h=40, f_limit=np.power(10, 28)):
+def run_CMAES_CM(objective_fct, x_start, sigma, h=40, f_limit=4.6*np.power(10, 18)):
     es = CMAES_CM(x_start, sigma)
     start_state = np.array([es.params.cmu, objective_fct.dimension])
     observations, actions, dones = [np.hstack((start_state, np.zeros(80)))], [], []

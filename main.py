@@ -39,8 +39,8 @@ def main():
             "chi_n",
             "chi_n_imit",
             "chi_n_imit_iter",
-            "chin_n_ipop",
-            "chin_n_ipop_imit",
+            "chi_n_ipop",
+            "chi_n_ipop_imit",
             "comb",
             "comb_imit",
             "comb_imit_iter",
@@ -140,7 +140,7 @@ def main():
         default=7570,
     )
 
-    subprocess.run(["python", "experiment_prep.py"], check=True)
+    subprocess.run(["python3", "experiment_prep.py"], check=True)
 
     args = parser.parse_args()
     if args.algorithm == "baseline" or args.algorithm == "optimized" or args.algorithm == "baseline_ipop":
@@ -228,8 +228,8 @@ def get_module_and_function(algorithm):
         "chi_n": ("Environments.ChiN.CMA_ES_CN_run", "run"),
         "chi_n_imit": ("Environments.ChiN.CMA_ES_CN_Imit", "run"),
         "chi_n_imit_iter": ("Environments.ChiN.CMA_ES_CN_Imit_Iter", "run"),
-        "chin_n_ipop": ("Environments.ChiN.CMA_ES_IPOP_CN_run", "run"),
-        "chin_n_ipop_imit": ("Environments.ChiN.CMA_ES_IPOP_CN_Imit", "run"),
+        "chi_n_ipop": ("Environments.ChiN.CMA_ES_IPOP_CN_run", "run"),
+        "chi_n_ipop_imit": ("Environments.ChiN.CMA_ES_IPOP_CN_Imit", "run"),
         "comb": ("Environments.Combined.CMA_ES_COMB_run", "run"),
         "comb_imit": ("Environments.Combined.CMA_ES_COMB_Imit", "run"),
         "comb_imit_iter": ("Environments.Combined.CMA_ES_COMB_Imit_Iter", "run"),

@@ -61,6 +61,7 @@ def run(
 
     n_epochs = 10
     batch_size = 64
+    ent_weight = 5e-2
 
     bc_trainer = bc.BC(
         observation_space=pre_train_env.observation_space,
@@ -69,6 +70,7 @@ def run(
         policy=g_utils.custom_Actor_Critic_Policy(pre_train_env),
         rng=np.random.default_rng(seed),
         batch_size=batch_size,
+        ent_weight=ent_weight,
     )
 
     policy_path = "Environments/Damping/Policies/policy_dp_imit"
