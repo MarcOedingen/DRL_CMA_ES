@@ -1,5 +1,5 @@
 #!/bin/bash
-declare algorithms=("chi_n" "comb" "static" "damping" "decay_rate_cc" "decay_rate_cs" "evolution_path_pc" "evolution_path_ps" "h_sigma" "learning_rate_c1" "learning_rate_cm" "mu_effective" "step_size")
+declare algorithms=("baseline" "optimized")
 declare dimensions=(2 3 5 10 20 40)
 declare x_start=-1
 declare reward_type="ecdf"
